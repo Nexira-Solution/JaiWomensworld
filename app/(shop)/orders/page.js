@@ -6,27 +6,27 @@ import toast from 'react-hot-toast';
 import { Package, Phone, Truck, Star, X, Loader2, ImagePlus, CheckCircle2 } from 'lucide-react';
 import { formatINR } from '@/lib/utils';
 
-// Theme: #064E4A (deep teal), #C49A45 (gold), #FFFDF5 (cream), #172A29 (dark teal), #E7DCC5 (sand)
-const INK = '#172A29';          // primary text
-const INK_SOFT = '#6B7F7C';     // muted text (derived teal-gray)
-const PEACH = '#C49A45';        // accent (gold) - stars, icons, dashed borders
-const PEACH_LIGHT = '#E7DCC5';  // accent background (sand)
-const PEACH_WASH = '#F4ECD8';   // lighter sand tint (image placeholders, status chips)
-const LINE = '#E7DCC5';         // borders (sand)
-const PAPER = '#FFFDF5';        // page background (cream)
-const SAGE = '#064E4A';         // deep teal (buttons, prices, success)
-const RUST = '#B0503A';         // errors / cancelled (kept for clear warning color)
-const GOLD_DARK = '#8A6A22';    // darker gold for readable accent text on light tints
-const FONT_SERIF = "Georgia, 'Times New Roman', serif";
+// JAI WOMENS WORLD Brand Palette
+const INK = '#171717';
+const INK_SOFT = '#77716F';
+const PEACH = '#BFA078';        // Gold accent
+const PEACH_LIGHT = '#E9DFD9';  // Border/soft fill
+const PEACH_WASH = '#F4E8E3';   // Soft pink background
+const LINE = '#E9DFD9';         // Border
+const PAPER = '#F5F0E9';        // Page background
+const SAGE = '#172333';         // Deep Navy
+const RUST = '#B0503A';         // Cancellation / errors
+const GOLD_DARK = '#9E7F55';
+const FONT_SERIF = "var(--font-display), 'Cormorant Garamond', Georgia, serif";
 
 const STATUS_STYLES = {
-  placed:    { color: INK_SOFT,  background: '#F1EBDC' },
+  placed:    { color: INK_SOFT,  background: '#E9DFD9' },
   confirmed: { color: GOLD_DARK, background: PEACH_WASH },
   packed:    { color: GOLD_DARK, background: PEACH_WASH },
-  shipped:   { color: INK,       background: PEACH_LIGHT },
-  delivered: { color: SAGE,      background: '#DCEBE8' },
+  shipped:   { color: '#FFFFFF', background: '#B98270' },
+  delivered: { color: '#FFFFFF', background: '#172333' },
   cancelled: { color: RUST,      background: '#FBEAE6' },
-  returned:  { color: INK_SOFT,  background: '#F1EBDC' },
+  returned:  { color: INK_SOFT,  background: '#E9DFD9' },
 };
 
 function ReviewForm({ order, item, phone, onDone }) {

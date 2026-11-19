@@ -3,21 +3,10 @@
 import { memo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { MoreVertical, Heart } from 'lucide-react';
+import { Heart, Sparkles, ArrowUpRight } from 'lucide-react';
 import { formatINR } from '@/lib/utils';
 import { getVariantTotalStock } from '@/lib/stock';
-import { useWishlist } from '@/components/WhishlistContext'; // adjust path as needed
-
-// Palette: #064E4A #C49A45 #FFFDF5 #172A29 #E7DCC5
-const TEAL = '#064E4A';
-const GOLD = '#C49A45';
-const INK = '#172A29';
-const INK_FAINT = '#6B7C7A';
-const WASH = '#F5EFE0';   // image placeholder (light tint of sand)
-const PAPER = '#FFFDF5';
-const FONT_SANS = "'Helvetica Neue', Helvetica, Arial, sans-serif";
-
-const pillBase = { padding: '6px 14px', borderRadius: '999px' };
+import { useWishlist } from '@/components/WhishlistContext';
 
 function ProductCard({ product, priority = false }) {
   const variant = product.variants?.[0];
@@ -45,95 +34,96 @@ function ProductCard({ product, priority = false }) {
   );
 
   return (
-    <div className="relative" style={{ background: PAPER, fontFamily: FONT_SANS }}>
-      {/* Wishlist button sits outside the Link (valid HTML, better accessibility).
-          No backdrop-filter: expensive to paint across a grid on cheap phones */}
+    <div className="group relative flex flex-col bg-white rounded-md overflow-hidden border border-[#E9DFD9] hover:border-[#D8B5A9] hover:shadow-card transition-all duration-300">
+      {/* Wishlist Button */}
       <button
         type="button"
         onClick={handleWishlistClick}
-        aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+        aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
         aria-pressed={wishlisted}
-        className="absolute top-4 right-4 z-10 flex items-center justify-center w-8 h-8 rounded-full transition-transform active:scale-90"
-        style={{ background: 'rgba(255,253,245,0.92)' }}
+        className="absolute top-3 right-3 z-10 w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center bg-white/90 backdrop-blur-sm shadow-sm transition-transform active:scale-90 hover:bg-white"
       >
         <Heart
-          className="w-4 h-4"
-          strokeWidth={2}
-          style={{ color: wishlisted ? GOLD : INK }}
-          fill={wishlisted ? GOLD : 'none'}
+          className="w-4 h-4 transition-colors"
+          strokeWidth={1.75}
+          style={{ color: wishlisted ? '#B98270' : '#172333' }}
+          fill={wishlisted ? '#B98270' : 'none'}
         />
       </button>
 
-      <Link href={`/product/${product.slug}`} prefetch={false} className="block">
-        <div className="relative aspect-[3/4] overflow-hidden" style={{ background: WASH }}>
-          <Image
-            src={image}
-            alt={product.name}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            quality={75}
-            priority={priority}
-            className={`object-cover ${outOfStock ? 'grayscale opacity-70' : ''}`}
-          />
+      {/* Product Image Clickable Link */}
+      <Link href={`/product/${product.slug}`} prefetch={false} className="block relative aspect-[3/4] overflow-hidden bg-[#F4E8E3]/40">
+        <Image
+          src={image}
+          alt={product.name}
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          quality={75}
+          priority={priority}
+          className={`object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105 ${
+            outOfStock ? 'grayscale opacity-75' : ''
+          }`}
+        />
 
-          <div className="absolute top-4 left-4">
-            {outOfStock ? (
-              <span className="text-xs font-semibold uppercase tracking-wider" style={{ ...pillBase, color: PAPER, background: INK_FAINT }}>
-                Out of stock
-              </span>
-            ) : lowStock ? (
-              <span className="text-xs font-semibold uppercase tracking-wider" style={{ ...pillBase, color: PAPER, background: TEAL }}>
-                {totalStock} left
-              </span>
-            ) : discountPct > 0 ? (
-              <span className="text-xs font-semibold uppercase tracking-wider" style={{ ...pillBase, color: INK, background: GOLD }}>
-                Sale
-              </span>
-            ) : null}
-          </div>
-
-          <span className="absolute bottom-3.5 right-3.5 flex items-center justify-center w-8 h-8" style={{ color: PAPER }}>
-            <MoreVertical className="w-5 h-5" strokeWidth={2} />
-          </span>
+        {/* Status / Offer Badges */}
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5 pointer-events-none">
+          {outOfStock ? (
+            <span className="text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded bg-[#172333]/80 text-[#F5F0E9]">
+              Sold Out
+            </span>
+          ) : lowStock ? (
+            <span className="text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded bg-[#B98270] text-white">
+              Only {totalStock} Left
+            </span>
+          ) : discountPct > 0 ? (
+            <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-[#BFA078] text-[#172333] shadow-sm">
+              {discountPct}% OFF
+            </span>
+          ) : null}
         </div>
 
-        <div className="pt-3">
-          {/* Name wraps to 2 lines max; fixed min height keeps grid rows aligned */}
-          <h3
-            className="text-sm sm:text-base font-medium leading-snug line-clamp-2 min-h-[2.5rem]"
-            style={{ color: INK }}
-          >
-            {product.name}
-          </h3>
+        {/* Hover Quick View Pill (Desktop) */}
+        <div className="absolute inset-x-3 bottom-3 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hidden sm:flex items-center justify-center py-2 rounded bg-white/95 backdrop-blur-xs text-[11px] font-medium tracking-wider uppercase text-[#172333] shadow-sm">
+          <span>View Details</span>
+          <ArrowUpRight size={13} className="ml-1 text-[#B98270]" />
+        </div>
+      </Link>
 
-          {/* Price + offer */}
-          <div className="mt-1 flex items-baseline gap-x-3 gap-y-1 flex-wrap">
-            <span className="font-bold text-lg sm:text-xl" style={{ color: TEAL }}>
+      {/* Product Information */}
+      <div className="p-3 sm:p-4 flex flex-col flex-1 justify-between bg-white">
+        <div>
+          {/* Subtle Category or Brand Tag */}
+          <span className="text-[10px] uppercase tracking-widest text-[#B98270] font-medium block mb-1">
+            Jai Boutique
+          </span>
+
+          <Link href={`/product/${product.slug}`} prefetch={false}>
+            <h3 className="font-body text-xs sm:text-sm font-medium text-[#171717] line-clamp-2 leading-snug group-hover:text-[#B98270] transition-colors min-h-[2.3rem]">
+              {product.name}
+            </h3>
+          </Link>
+        </div>
+
+        {/* Pricing Area */}
+        <div className="mt-3 pt-2.5 border-t border-[#E9DFD9]/60 flex items-baseline justify-between flex-wrap gap-1">
+          <div className="flex items-baseline gap-2">
+            <span className="font-semibold text-sm sm:text-base text-[#172333]">
               {formatINR(price)}
             </span>
-
             {hasOffer && (
-              <>
-                <span className="text-sm sm:text-base line-through font-light" style={{ color: INK_FAINT }}>
-                  {formatINR(compareAt)}
-                </span>
-                <span
-                  className="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded"
-                  style={{ color: INK, background: GOLD }}
-                >
-                  {discountPct}% off
-                </span>
-              </>
+              <span className="text-xs text-[#77716F] line-through font-light">
+                {formatINR(compareAt)}
+              </span>
             )}
           </div>
 
           {hasOffer && (
-            <p className="mt-1 text-xs" style={{ color: INK_FAINT }}>
-              You save {formatINR(compareAt - price)}
-            </p>
+            <span className="text-[10px] text-[#B98270] font-medium">
+              Save {formatINR(compareAt - price)}
+            </span>
           )}
         </div>
-      </Link>
+      </div>
     </div>
   );
 }

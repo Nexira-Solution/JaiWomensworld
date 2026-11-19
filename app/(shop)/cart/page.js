@@ -5,141 +5,177 @@ import Link from 'next/link';
 import { useCart, cartKey } from '@/components/CartContext';
 import { useCartQuote } from '@/lib/useCartQuote';
 import { formatINR } from '@/lib/utils';
-import { Trash2, ShoppingBag } from 'lucide-react';
-
-// Palette: #064E4A #C49A45 #FFFDF5 #172A29 #E7DCC5
-const INK = '#172A29';
-const INK_SOFT = '#6B7C7A';
-const TEAL = '#064E4A';
-const WASH = '#F5EFE0';
-const LINE = '#E7DCC5';
-const PAPER = '#FFFDF5';
-const FONT_SERIF = "Georgia, 'Times New Roman', serif";
+import { Trash2, ShoppingBag, ArrowRight, ShieldCheck, Truck } from 'lucide-react';
 
 export default function CartPage() {
   const { items, updateQty, removeItem, subtotal } = useCart();
-  // Checks the cart against the server and fixes stale prices / removed products.
   const { loading: syncing } = useCartQuote();
 
   if (items.length === 0) {
     return (
-      <div className="max-w-md mx-auto px-5 py-24 text-center" style={{ background: PAPER }}>
-        <ShoppingBag size={28} strokeWidth={1.5} className="mx-auto mb-4" style={{ color: TEAL, opacity: 0.5 }} />
-        <p className="text-[15px] mb-1" style={{ color: INK, fontFamily: FONT_SERIF }}>Your cart is empty</p>
-        <p className="text-sm mb-7" style={{ color: INK_SOFT }}>Add something beautiful from our collection.</p>
-        <Link
-          href="/"
-          className="inline-block px-6 py-3 text-sm font-medium transition-colors bg-[#064E4A] hover:bg-[#043B38]"
-          style={{ color: PAPER, borderRadius: '4px' }}
-        >
-          Continue Shopping
-        </Link>
+      <div className="bg-[#F5F0E9] min-h-[70vh] flex items-center justify-center py-16 px-4">
+        <div className="max-w-md w-full bg-white rounded-xl border border-[#E9DFD9] p-8 sm:p-10 text-center shadow-card">
+          <div className="w-16 h-16 rounded-full bg-[#F4E8E3] flex items-center justify-center mx-auto mb-5 text-[#B98270]">
+            <ShoppingBag size={28} strokeWidth={1.5} />
+          </div>
+          <h1 className="font-display text-2xl font-semibold text-[#172333] mb-2">
+            Your Shopping Bag is Empty
+          </h1>
+          <p className="text-xs sm:text-sm text-[#77716F] font-light mb-8 leading-relaxed">
+            Discover our curated collection of handcrafted kurtis, salwar sets, and comfortable boutique fashion.
+          </p>
+          <Link
+            href="/products"
+            className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded bg-[#172333] hover:bg-[#B98270] text-white text-xs uppercase tracking-[0.16em] font-medium transition-colors shadow-boutique"
+          >
+            <span>Explore Collections</span>
+            <ArrowRight size={14} />
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-5 sm:px-8 py-10 sm:py-14" style={{ background: PAPER }}>
-      <h1 className="text-[24px] sm:text-[28px] mb-8" style={{ fontFamily: FONT_SERIF, color: TEAL }}>
-        Your Cart
-      </h1>
+    <div className="bg-[#F5F0E9] min-h-screen py-10 sm:py-16">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Header */}
+        <div className="mb-8 border-b border-[#E9DFD9] pb-4 flex items-end justify-between">
+          <div>
+            <span className="text-[10.5px] uppercase tracking-[0.2em] font-semibold text-[#B98270] block mb-1">
+              Shopping Summary
+            </span>
+            <h1 className="font-display text-2xl sm:text-3xl font-semibold text-[#172333]">
+              Your Shopping Bag
+            </h1>
+          </div>
+          <span className="text-xs text-[#77716F]">
+            {items.reduce((sum, it) => sum + it.qty, 0)} Items
+          </span>
+        </div>
 
-      <div className="space-y-0">
-        {items.map((item, idx) => {
-          const key = cartKey(item);
-          const details = [
-            item.color && `Color: ${item.color}`,
-            !item.packDetails && item.size && `Size: ${item.size}`,
-            item.sleeveType,
-            item.zipType,
-            item.pantOption?.name && `Pant: ${item.pantOption.name}`,
-            item.shawlOption?.name && `Shawl: ${item.shawlOption.name}`,
-          ].filter(Boolean).join(' · ');
+        {/* Cart Items List */}
+        <div className="bg-white rounded-xl border border-[#E9DFD9] shadow-card overflow-hidden divide-y divide-[#E9DFD9]">
+          {items.map((item) => {
+            const key = cartKey(item);
+            const details = [
+              item.color && `Color: ${item.color}`,
+              !item.packDetails && item.size && `Size: ${item.size}`,
+              item.sleeveType,
+              item.zipType,
+              item.pantOption?.name && `Pant: ${item.pantOption.name}`,
+              item.shawlOption?.name && `Shawl: ${item.shawlOption.name}`,
+            ]
+              .filter(Boolean)
+              .join(' · ');
 
-          return (
-            <div
-              key={key}
-              className="flex gap-4 py-5"
-              style={{ borderTop: idx === 0 ? `1px solid ${LINE}` : 'none', borderBottom: `1px solid ${LINE}` }}
-            >
-              {/* Product image */}
-              <div className="relative shrink-0 w-16 h-20 sm:w-20 sm:h-24 overflow-hidden" style={{ background: WASH, borderRadius: '3px' }}>
-                <Image src={item.image || '/placeholder.png'} alt={item.name} fill className="object-cover" />
-              </div>
+            return (
+              <div key={key} className="p-4 sm:p-6 flex gap-4 sm:gap-6 items-start">
+                {/* Image */}
+                <div className="relative shrink-0 w-20 h-26 sm:w-24 sm:h-32 rounded-md overflow-hidden bg-[#F4E8E3] border border-[#E9DFD9]">
+                  <Image src={item.image || '/placeholder.png'} alt={item.name} fill className="object-cover" />
+                </div>
 
-              {/* Product info */}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm line-clamp-1" style={{ color: INK }}>{item.name}</p>
-                {details && (
-                  <p className="text-xs mt-1" style={{ color: INK_SOFT }}>{details}</p>
-                )}
-                {item.isCombo && item.pieces > 1 && (
-                  <p className="text-xs mt-0.5" style={{ color: INK_SOFT }}>
-                    {item.pieces} pieces{item.qty > 1 ? ` each · ${item.qty * item.pieces} total` : ''}
-                  </p>
-                )}
-                <p className="text-sm mt-1.5" style={{ color: TEAL }}>{formatINR(item.price)}</p>
-
-                {/* Qty controls + remove */}
-                <div className="flex items-center gap-4 mt-3">
-                  <div className="flex items-center" style={{ border: `1px solid ${LINE}`, borderRadius: '3px' }}>
-                    <button
-                      onClick={() => updateQty(key, item.qty - 1)}
-                      className="px-2.5 py-1 text-sm transition-opacity active:opacity-60"
-                      style={{ color: INK }}
-                      aria-label="Decrease quantity"
-                    >
-                      −
-                    </button>
-                    <span className="px-3 py-1 text-sm" style={{ color: INK, borderLeft: `1px solid ${LINE}`, borderRight: `1px solid ${LINE}` }}>
-                      {item.qty}
+                {/* Details */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-display text-base font-semibold text-[#172333] truncate">
+                    {item.name}
+                  </h3>
+                  {details && (
+                    <p className="text-xs text-[#77716F] mt-1 font-light leading-relaxed">
+                      {details}
+                    </p>
+                  )}
+                  {item.isCombo && item.pieces > 1 && (
+                    <span className="inline-block text-[10px] text-[#B98270] font-medium bg-[#B98270]/10 px-2 py-0.5 rounded mt-1.5">
+                      {item.pieces} pieces set
                     </span>
+                  )}
+                  <p className="text-sm font-semibold text-[#172333] mt-2">
+                    {formatINR(item.price)}
+                  </p>
+
+                  {/* Quantity Stepper & Remove */}
+                  <div className="flex items-center gap-4 mt-3">
+                    <div className="flex items-center border border-[#E9DFD9] rounded bg-[#F5F0E9]">
+                      <button
+                        onClick={() => updateQty(key, item.qty - 1)}
+                        className="w-7 h-7 flex items-center justify-center text-xs font-semibold text-[#172333] hover:bg-white transition-colors"
+                        aria-label="Decrease quantity"
+                      >
+                        −
+                      </button>
+                      <span className="w-8 text-center text-xs font-semibold text-[#172333]">
+                        {item.qty}
+                      </span>
+                      <button
+                        onClick={() => updateQty(key, item.qty + 1)}
+                        className="w-7 h-7 flex items-center justify-center text-xs font-semibold text-[#172333] hover:bg-white transition-colors"
+                        aria-label="Increase quantity"
+                      >
+                        +
+                      </button>
+                    </div>
+
                     <button
-                      onClick={() => updateQty(key, item.qty + 1)}
-                      className="px-2.5 py-1 text-sm transition-opacity active:opacity-60"
-                      style={{ color: INK }}
-                      aria-label="Increase quantity"
+                      onClick={() => removeItem(key)}
+                      className="text-xs text-[#77716F] hover:text-[#B0503A] flex items-center gap-1 transition-colors"
+                      aria-label="Remove item"
                     >
-                      +
+                      <Trash2 size={13} />
+                      <span className="hidden sm:inline">Remove</span>
                     </button>
                   </div>
+                </div>
 
-                  <button
-                    onClick={() => removeItem(key)}
-                    className="transition-opacity active:opacity-60"
-                    style={{ color: INK_SOFT }}
-                    aria-label="Remove item"
-                  >
-                    <Trash2 size={15} strokeWidth={1.5} />
-                  </button>
+                {/* Total */}
+                <div className="text-right shrink-0">
+                  <span className="font-semibold text-sm sm:text-base text-[#172333]">
+                    {formatINR(item.price * item.qty)}
+                  </span>
                 </div>
               </div>
+            );
+          })}
+        </div>
 
-              {/* Line total */}
-              <p className="text-sm shrink-0 self-start pt-0.5" style={{ color: INK }}>
-                {formatINR(item.price * item.qty)}
-              </p>
-            </div>
-          );
-        })}
+        {/* Order Summary & Checkout Card */}
+        <div className="mt-8 bg-white rounded-xl border border-[#E9DFD9] shadow-card p-6 sm:p-8">
+          <div className="flex items-center justify-between pb-4 border-b border-[#E9DFD9]">
+            <span className="text-xs uppercase tracking-wider text-[#77716F] font-medium">
+              Subtotal {syncing && <span className="text-[11px] lowercase italic">(syncing prices...)</span>}
+            </span>
+            <span className="font-display text-2xl font-semibold text-[#172333]">
+              {formatINR(subtotal)}
+            </span>
+          </div>
+
+          <p className="text-[11px] text-[#77716F] mt-2 font-light">
+            Taxes included. Delivery fee calculated at checkout based on location.
+          </p>
+
+          <Link
+            href="/checkout"
+            className="mt-6 flex items-center justify-center gap-2 w-full py-3.5 rounded bg-[#172333] hover:bg-[#B98270] text-white text-xs uppercase tracking-[0.16em] font-semibold transition-all shadow-boutique"
+          >
+            <span>Proceed to Secure Checkout</span>
+            <ArrowRight size={14} />
+          </Link>
+
+          <div className="mt-6 pt-4 border-t border-[#E9DFD9] flex items-center justify-center gap-6 text-[11px] text-[#77716F]">
+            <span className="flex items-center gap-1">
+              <ShieldCheck size={14} className="text-[#BFA078]" />
+              Secure Payment
+            </span>
+            <span className="flex items-center gap-1">
+              <Truck size={14} className="text-[#B98270]" />
+              Tracked Delivery
+            </span>
+          </div>
+        </div>
+
       </div>
-
-      {/* Subtotal */}
-      <div className="flex items-center justify-between pt-6 mt-2">
-        <span className="text-sm" style={{ color: INK_SOFT }}>
-          Subtotal{syncing ? ' · checking prices…' : ''}
-        </span>
-        <span className="text-lg" style={{ color: TEAL, fontFamily: FONT_SERIF }}>{formatINR(subtotal)}</span>
-      </div>
-
-      {/* Checkout CTA */}
-      <Link
-        href="/checkout"
-        className="block w-full text-center mt-6 py-3.5 text-sm font-medium transition-colors bg-[#064E4A] hover:bg-[#043B38]"
-        style={{ color: PAPER, borderRadius: '4px' }}
-      >
-        Proceed to Checkout
-      </Link>
     </div>
   );
 }

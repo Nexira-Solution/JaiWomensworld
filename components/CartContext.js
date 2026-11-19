@@ -36,8 +36,8 @@ function brandToast(message, opts = {}) {
     () => (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <span>{message}</span>
-        <span style={{ fontSize: 9, color: TEAL, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>
-          Shea Fashions
+        <span style={{ fontSize: 9, color: '#172333', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>
+          Jai Womens World
         </span>
       </div>
     ),

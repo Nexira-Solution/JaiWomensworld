@@ -8,11 +8,11 @@ export default async function ShopLayout({ children }) {
   const categories = await getNavCategories();
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen bg-[#F5F0E9] text-[#171717]">
       <Navbar categories={categories} />
-      <main className="min-h-screen">{children}</main>
+      <main className="flex-1">{children}</main>
       <Footer />
-      <WhatsAppButton phone="919092955054" />
-    </>
+      <WhatsAppButton phone="919500381414" />
+    </div>
   );
 }

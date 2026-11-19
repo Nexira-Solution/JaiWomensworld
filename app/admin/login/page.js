@@ -2,14 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import toast from 'react-hot-toast';
 
-// Theme: #064E4A (deep teal), #C49A45 (gold), #FFFDF5 (cream), #172A29 (dark teal), #E7DCC5 (sand)
-const INK = '#172A29';          // primary text
-const INK_SOFT = '#6B7F7C';     // muted text (derived teal-gray)
-const LINE = '#E7DCC5';         // borders (sand)
-const PAPER = '#FFFDF5';        // page background (cream)
-const SAGE = '#064E4A';         // deep teal (focus border, button)
+const INK = '#171717';
+const INK_SOFT = '#77716F';
+const LINE = '#E9DFD9';
+const PAPER = '#F5F0E9';
+const NAVY = '#172333';
+const ROSE = '#B98270';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
@@ -23,7 +24,7 @@ export default function AdminLoginPage() {
     const res = await fetch('/api/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password }),
     });
     const data = await res.json();
     setLoading(false);
@@ -37,45 +38,57 @@ export default function AdminLoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4" style={{ background: PAPER }}>
-      <form onSubmit={submit} className="w-full max-w-[340px]">
-        <div className="text-center mb-8">
-          <h1 className="text-xl font-medium" style={{ color: INK }}>
-            Shea Fashions
+      <form
+        onSubmit={submit}
+        className="w-full max-w-[380px] bg-white rounded-xl border border-[#E9DFD9] p-8 shadow-card"
+      >
+        <div className="text-center mb-7">
+          <div className="relative w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden border border-[#E9DFD9] bg-white shadow-xs">
+            <Image src="/Jai-logo.jpeg" alt="Jai Womens World" fill sizes="64px" className="object-cover" priority />
+          </div>
+          <h1 className="font-display text-xl font-semibold text-[#172333]">
+            Jai Womens World
           </h1>
-          <p className="text-xs mt-1.5" style={{ color: INK_SOFT }}>Admin sign in</p>
+          <p className="text-xs uppercase tracking-widest text-[#B98270] font-medium mt-1">
+            Boutique Administration
+          </p>
         </div>
 
-        <div className="space-y-3">
-          <input
-            type="email"
-            required
-            placeholder="Admin email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2.5 text-sm bg-transparent outline-none transition-colors"
-            style={{ border: `1px solid ${LINE}`, borderRadius: '4px', color: INK }}
-            onFocus={(e) => (e.target.style.borderColor = SAGE)}
-            onBlur={(e) => (e.target.style.borderColor = LINE)}
-          />
-          <input
-            type="password"
-            required
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2.5 text-sm bg-transparent outline-none transition-colors"
-            style={{ border: `1px solid ${LINE}`, borderRadius: '4px', color: INK }}
-            onFocus={(e) => (e.target.style.borderColor = SAGE)}
-            onBlur={(e) => (e.target.style.borderColor = LINE)}
-          />
+        <div className="space-y-3.5">
+          <div>
+            <label className="block text-xs uppercase tracking-wider font-medium text-[#77716F] mb-1">
+              Admin Email
+            </label>
+            <input
+              type="email"
+              required
+              placeholder="admin@jaiwomensworld.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3.5 py-2.5 text-sm bg-[#F5F0E9]/40 outline-none transition-colors border border-[#E9DFD9] rounded focus:border-[#172333] text-[#171717]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs uppercase tracking-wider font-medium text-[#77716F] mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              required
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3.5 py-2.5 text-sm bg-[#F5F0E9]/40 outline-none transition-colors border border-[#E9DFD9] rounded focus:border-[#172333] text-[#171717]"
+            />
+          </div>
         </div>
 
         <button
           disabled={loading}
-          className="w-full mt-5 py-2.5 text-sm font-medium transition-opacity active:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ background: SAGE, color: PAPER, borderRadius: '4px' }}
+          className="w-full mt-6 py-3 rounded text-xs uppercase tracking-wider font-semibold text-white transition-all shadow-boutique bg-[#172333] hover:bg-[#B98270] disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Signing in…' : 'Sign In'}
+          {loading ? 'Authenticating…' : 'Sign In to Dashboard'}
         </button>
       </form>
     </div>

@@ -6,19 +6,25 @@ import { formatINR } from '@/lib/utils';
 import PrintButton from '@/components/PrintButton';
 import PrintStyles from '@/components/PrintStyles';
 
-// Theme: #064E4A (deep teal), #C49A45 (gold), #FFFDF5 (cream), #172A29 (dark teal), #E7DCC5 (sand)
-const INK = '#172A29';
-const INK_SOFT = '#6B7F7C';
-const PEACH_LIGHT = '#E7DCC5';
-const LINE = '#E7DCC5';
-const PAPER = '#FFFDF5';
-const SAGE = '#064E4A';
-const FONT_SERIF = "Georgia, 'Times New Roman', serif";
+// JAI WOMENS WORLD Brand Palette
+const INK = '#171717';
+const INK_SOFT = '#77716F';
+const PEACH_LIGHT = '#F4E8E3';
+const LINE = '#E9DFD9';
+const PAPER = '#FFFFFF';
+const SAGE = '#172333';
+const FONT_SERIF = "var(--font-display), 'Cormorant Garamond', Georgia, serif";
 
 export default async function CourierBillPage({ params }) {
-  await dbConnect();
-  const order = await Order.findById(params.orderId).lean();
-  const settings = await Settings.findOne({ key: 'global' }).lean();
+  let order = null;
+  let settings = null;
+  try {
+    await dbConnect();
+    order = await Order.findById(params.orderId).lean();
+    settings = await Settings.findOne({ key: 'global' }).lean();
+  } catch (err) {
+    console.error('Error fetching shipping label:', err?.message || err);
+  }
 
   if (!order) {
     return (
@@ -29,8 +35,8 @@ export default async function CourierBillPage({ params }) {
   }
 
   // Use the logo saved in settings, else fall back to a file in /public
-  const logoSrc = settings?.logoUrl || settings?.logo || '/logo.png';
-  const storeName = settings?.storeName || 'Shea Fashions';
+  const logoSrc = settings?.logoUrl || settings?.logo || '/Jai-logo.jpeg';
+  const storeName = settings?.storeName || 'Jai Womens World';
 
   return (
     <>

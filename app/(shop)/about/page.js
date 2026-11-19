@@ -1,22 +1,11 @@
 import Link from 'next/link';
-import { MessageCircle } from 'lucide-react';
+import Image from 'next/image';
+import { MessageCircle, MapPin, Phone, Mail, Sparkles, ShieldCheck, HeartHandshake, Truck } from 'lucide-react';
 import { dbConnect } from '@/lib/mongodb';
 import Category from '@/models/Category';
 
-// Same tokens as Navbar / CouponMarquee
-const TEAL = '#064E4A';
-const INK = '#172A29';
-const INK_FAINT = '#6B7C7A';
-const GOLD = '#C49A45';
-const HAIRLINE = '#E7DCC5';
-const PAPER = '#FFFDF5';
-const FONT_SERIF = "Georgia, 'Times New Roman', serif";
-
-// Refresh the shop button's category at most once an hour
 export const revalidate = 3600;
 
-// Link to New Arrivals in the first active main category (same sort order as the
-// navbar). Falls back to the homepage if the lookup fails or there are no categories.
 async function getShopHref() {
   try {
     await dbConnect();
@@ -24,153 +13,217 @@ async function getShopHref() {
       .sort({ sortOrder: 1, name: 1 })
       .select('slug')
       .lean();
-    return first?.slug ? `/category/${first.slug}?flag=newarrival` : '/';
+    return first?.slug ? `/category/${first.slug}` : '/products';
   } catch {
-    return '/';
+    return '/products';
   }
 }
 
-const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '919092955054';
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '919500381414';
+const PHONE_DISPLAY = '+91 9500381414';
+const EMAIL = 'jaiwomensworld@gmail.com';
 
 export const metadata = {
-  title: 'About Us | Shea Fashions',
+  title: 'About Us | Jai Womens World',
   description:
-    'Meet Jeni Jacob, founder of Shea Fashions. Exclusive sarees, kurtis and salwar materials, with custom and bulk orders and shipping across India and worldwide.',
+    "Discover the story of Jai Womens World, a premier women's fashion boutique in Tiruvannamalai, Tamil Nadu. Explore our curated kurtis, salwar sets, and dedication to timeless style.",
 };
 
-const HIGHLIGHTS = [
+const VALUES = [
   {
-    title: 'Exclusive and trendy collections',
-    text: 'Sarees, kurtis, salwar materials and more, picked to suit your style.',
+    icon: Sparkles,
+    title: 'Curated Boutique Designs',
+    text: 'Every kurti, salwar set, and nighty is handpicked for impeccable fit, timeless silhouette, and everyday elegance.',
   },
   {
-    title: 'Quality fabrics for every occasion',
-    text: 'From everyday wear to festive days, each piece is chosen for how it feels and lasts.',
+    icon: ShieldCheck,
+    title: 'Fabric Quality First',
+    text: 'We prioritize breathable pure cottons, fluid rayous, and skin-friendly textiles that look rich and feel effortless all day.',
   },
   {
-    title: 'Customised orders',
-    text: 'Tell us what you have in mind and we will help shape it to your preferences.',
+    icon: HeartHandshake,
+    title: 'Personalized Customer Care',
+    text: 'Direct communication via WhatsApp for size guidance, styling queries, and custom order assistance.',
   },
   {
-    title: 'Bulk orders accepted',
-    text: 'Ordering for a family function, a group or your own store? We are happy to help.',
-  },
-  {
-    title: 'Shipping across India and abroad',
-    text: 'We deliver all over India, and international shipping is available.',
+    icon: Truck,
+    title: 'Pan-India Delivery',
+    text: 'Swift and reliable packaging with door-step delivery across India and prompt tracking updates.',
   },
 ];
 
 export default async function AboutPage() {
   const shopHref = await getShopHref();
-  const bulkUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-    'Hi Shea Fashions, I would like to know more about bulk orders.'
+  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+    'Hi Jai Womens World, I would like to enquire about your boutique collection.'
   )}`;
 
   return (
-    <main style={{ background: PAPER, color: INK }}>
-      {/* Intro */}
-      <section className="max-w-3xl mx-auto px-6 pt-16 pb-12 sm:pt-24 sm:pb-16 text-center">
-        <p className="text-[15px] mb-4" style={{ color: GOLD, fontFamily: FONT_SERIF, fontStyle: 'italic' }}>
-          Sculpt Ur Wardrobe
-        </p>
-        <h1
-          className="text-[34px] sm:text-[48px] leading-[1.15]"
-          style={{ fontFamily: FONT_SERIF, color: INK }}
-        >
-          Welcome to Shea Fashions
-        </h1>
-        <div className="mx-auto mt-6 mb-6 h-px w-16" style={{ background: GOLD }} />
-        <p className="text-[16px] sm:text-[17px] leading-[1.85]" style={{ color: INK_FAINT }}>
-          A passion for fashion, now five years into its journey, grown through your trust, love and
-          continuous support.
-        </p>
+    <div className="bg-[#F5F0E9] min-h-screen">
+      
+      {/* Editorial Hero Banner */}
+      <section className="relative py-20 sm:py-28 bg-gradient-to-b from-[#FFFFFF] to-[#F5F0E9] border-b border-[#E9DFD9]">
+        <div className="max-w-4xl mx-auto px-5 sm:px-8 text-center space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#B98270]/10 text-[#B98270] text-[10.5px] uppercase tracking-[0.25em] font-semibold">
+            Our Story &amp; Philosophy
+          </div>
+
+          <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-semibold text-[#172333] leading-tight">
+            Welcome to <br />
+            <span className="italic font-normal text-[#B98270]">Jai Womens World</span>
+          </h1>
+
+          <div className="w-12 h-0.5 bg-[#BFA078] mx-auto my-4" />
+
+          <p className="text-sm sm:text-base text-[#77716F] max-w-2xl mx-auto leading-relaxed font-light">
+            Founded in Tiruvannamalai, Tamil Nadu, Jai Womens World was born from a simple passion: to make sophisticated, comfortable, and celebratory women&rsquo;s fashion accessible to every home.
+          </p>
+        </div>
       </section>
 
-      {/* Founder story */}
-      <section style={{ borderTop: `1px solid ${HAIRLINE}`, borderBottom: `1px solid ${HAIRLINE}` }}>
-        <div className="max-w-3xl mx-auto px-6 py-14 sm:py-20">
-          <h2 className="text-[26px] sm:text-[30px] mb-6" style={{ fontFamily: FONT_SERIF, color: TEAL }}>
-            Hi, I&rsquo;m Jeni Jacob
-          </h2>
-          <div
-            className="space-y-5 text-[16px] leading-[1.9]"
-            style={{ fontFamily: FONT_SERIF, color: INK }}
-          >
-            <p>
-              I&rsquo;m a woman entrepreneur and a proud mom of two, and I turned my passion for fashion
-              into a business.
+      {/* Brand Identity / Story Section */}
+      <section className="py-20 max-w-7xl mx-auto px-5 sm:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          
+          <div className="lg:col-span-6 relative">
+            <div className="relative aspect-[4/5] rounded-xl overflow-hidden border border-[#E9DFD9] shadow-boutique bg-white flex items-center justify-center">
+              <Image
+                src="/Jai-logo.jpeg"
+                alt="Jai Womens World Logo"
+                fill
+                className="object-cover"
+              />
+              <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-[#172333]/90 to-transparent text-white text-center">
+                <span className="font-display text-xl font-semibold block">JAI WOMENS WORLD</span>
+                <span className="text-xs uppercase tracking-widest text-[#D8B5A9]">Tiruvannamalai, Tamil Nadu</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="lg:col-span-6 space-y-6">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#B98270] block">
+              Crafted With Purpose
+            </span>
+
+            <h2 className="font-display text-3xl sm:text-4xl font-semibold text-[#172333] leading-snug">
+              Every Stitch Tells a Tale of Grace
+            </h2>
+
+            <p className="text-sm sm:text-base text-[#77716F] font-light leading-relaxed">
+              We understand that Indian women balance tradition and modernity with poise. Our collections reflect this duality — from classic straight-cut cotton kurtis to trending rayon umbrella silhouettes, salwar suit sets, and nighties designed for rest and relaxation.
             </p>
-            <p>
-              For the past 5 years, Shea Fashions has been growing through online sales, your trust,
-              love, and continuous support. What started as a passion has become a beautiful journey,
-              and I&rsquo;m truly blessed to be part of this fashion world.
+
+            <p className="text-sm sm:text-base text-[#77716F] font-light leading-relaxed">
+              Every design is vetted for quality textiles, color fastness, and genuine value. We take pride in serving thousands of satisfied patrons across Tamil Nadu and throughout India with uncompromising honesty and warmth.
             </p>
-            <p>
-              At Shea Fashions, we bring you an exclusive and wide collection of sarees, kurtis, salwar
-              materials, and more, carefully selected to suit your style and make every wardrobe
-              special.
-            </p>
-            <p>
-              We regularly share our latest collections and product videos across our social media
-              platforms, so you always know about new arrivals and trending styles.
-            </p>
+
+            <div className="pt-4 flex flex-col sm:flex-row gap-4">
+              <Link
+                href={shopHref}
+                className="px-8 py-3.5 rounded bg-[#172333] hover:bg-[#B98270] text-white text-xs uppercase tracking-[0.16em] font-semibold transition-all text-center shadow-boutique"
+              >
+                Explore The Collection
+              </Link>
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-8 py-3.5 rounded bg-white hover:bg-[#F4E8E3] text-[#172333] border border-[#E9DFD9] text-xs uppercase tracking-[0.16em] font-semibold transition-all flex items-center justify-center gap-2"
+              >
+                <MessageCircle size={15} />
+                <span>Chat On WhatsApp</span>
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* Values Grid */}
+      <section className="py-20 bg-white border-y border-[#E9DFD9]">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <div className="text-center mb-14">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#B98270] block mb-2">
+              Why Choose Us
+            </span>
+            <h2 className="font-display text-2xl sm:text-4xl font-semibold text-[#172333]">
+              The Jai Boutique Commitment
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {VALUES.map((v, i) => {
+              const Icon = v.icon;
+              return (
+                <div
+                  key={i}
+                  className="p-6 rounded-lg border border-[#E9DFD9] bg-[#F5F0E9]/30 hover:bg-[#F5F0E9]/70 hover:border-[#D8B5A9] transition-all"
+                >
+                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center border border-[#E9DFD9] mb-4 text-[#B98270] shadow-xs">
+                    <Icon size={18} />
+                  </div>
+                  <h3 className="font-display text-base font-semibold text-[#172333] mb-2">
+                    {v.title}
+                  </h3>
+                  <p className="text-xs text-[#77716F] font-light leading-relaxed">
+                    {v.text}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* What makes us special */}
-      <section className="max-w-5xl mx-auto px-6 py-14 sm:py-20">
-        <h2
-          className="text-[26px] sm:text-[30px] text-center mb-10 sm:mb-12"
-          style={{ fontFamily: FONT_SERIF, color: INK }}
-        >
-          What makes Shea Fashions special
-        </h2>
+      {/* Boutique Visit & Contact Information */}
+      <section className="py-20 max-w-4xl mx-auto px-5 sm:px-8 text-center">
+        <div className="bg-white rounded-xl border border-[#E9DFD9] p-8 sm:p-12 shadow-card space-y-6">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#B98270] block">
+            Visit &amp; Connect
+          </span>
 
-        <ul className="grid gap-x-12 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-          {HIGHLIGHTS.map((item) => (
-            <li key={item.title} className="pl-4" style={{ borderLeft: `2px solid ${GOLD}` }}>
-              <h3 className="text-[17px] mb-1.5" style={{ fontFamily: FONT_SERIF, color: TEAL }}>
-                {item.title}
-              </h3>
-              <p className="text-[14px] leading-[1.75]" style={{ color: INK_FAINT }}>
-                {item.text}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* Call to action */}
-      <section style={{ background: TEAL }}>
-        <div className="max-w-3xl mx-auto px-6 py-14 sm:py-16 text-center">
-          <h2 className="text-[26px] sm:text-[30px] mb-3" style={{ fontFamily: FONT_SERIF, color: PAPER }}>
-            Find something for your wardrobe
+          <h2 className="font-display text-2xl sm:text-3xl font-semibold text-[#172333]">
+            Our Store Location
           </h2>
-          <p className="text-[15px] leading-[1.8] mb-8" style={{ color: HAIRLINE }}>
-            Browse the latest collections, or message us for custom and bulk orders.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href={shopHref}
-              className="w-full sm:w-auto px-7 py-3 text-sm font-medium transition-opacity hover:opacity-90"
-              style={{ background: GOLD, color: INK, borderRadius: '4px' }}
-            >
-              Shop new arrivals
-            </Link>
+
+          <div className="space-y-3 text-sm text-[#171717] font-light max-w-md mx-auto pt-2">
+            <div className="flex items-start justify-center gap-2.5">
+              <MapPin size={17} className="text-[#B98270] shrink-0 mt-0.5" />
+              <span>
+                24, Chengam Road, 2nd Street,<br />
+                Tiruvannamalai, Tamil Nadu – 606601, India.
+              </span>
+            </div>
+
+            <div className="flex items-center justify-center gap-2.5">
+              <Phone size={15} className="text-[#BFA078] shrink-0" />
+              <a href={`tel:${WHATSAPP_NUMBER}`} className="hover:text-[#B98270] transition-colors font-medium">
+                {PHONE_DISPLAY}
+              </a>
+            </div>
+
+            <div className="flex items-center justify-center gap-2.5">
+              <Mail size={15} className="text-[#BFA078] shrink-0" />
+              <a href={`mailto:${EMAIL}`} className="hover:text-[#B98270] transition-colors font-medium">
+                {EMAIL}
+              </a>
+            </div>
+          </div>
+
+          <div className="pt-4">
             <a
-              href={bulkUrl}
+              href={`https://wa.me/${WHATSAPP_NUMBER}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 text-sm font-medium transition-opacity hover:opacity-90"
-              style={{ border: `1px solid ${HAIRLINE}`, color: PAPER, borderRadius: '4px' }}
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded bg-[#172333] hover:bg-[#B98270] text-white text-xs uppercase tracking-[0.16em] font-semibold transition-all shadow-boutique"
             >
-              <MessageCircle size={16} strokeWidth={1.75} /> Chat on WhatsApp
+              <MessageCircle size={15} />
+              <span>Connect on WhatsApp</span>
             </a>
           </div>
         </div>
       </section>
-    </main>
+
+    </div>
   );
 }

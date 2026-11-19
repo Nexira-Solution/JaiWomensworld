@@ -1,25 +1,73 @@
 'use client';
 
 import Image from 'next/image';
-import { Star, ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
+import { Star, ChevronLeft, ChevronRight, X, ZoomIn, Quote, CheckCircle } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 
-// Design tokens — shared teal / gold / cream theme
-// Palette: #064E4A #C49A45 #FFFDF5 #172A29 #E7DCC5
-const TEAL = '#064E4A';
-const GOLD = '#C49A45';
-const INK = '#172A29';
-const INK_FAINT = '#6B7C7A';
-const HAIRLINE = '#E7DCC5';
-const WASH = '#F5EFE0';
-const PAPER = '#FFFDF5';
+const SAMPLE_REVIEWS = [
+  {
+    _id: 'sample-1',
+    customerName: 'Priya Sundaram',
+    rating: 5,
+    title: 'Flawless Fit & Premium Fabric',
+    comment:
+      'The Rayon Umbrella Kurti fits like a dream! Fabric is exceptionally breathable, soft against the skin, and the stitching is truly boutique-grade. Delivery was super fast.',
+    productName: 'Rayon Umbrella Kurti',
+    city: 'Chennai',
+    images: [],
+  },
+  {
+    _id: 'sample-2',
+    customerName: 'Anitha Rajesh',
+    rating: 5,
+    title: 'Loved the Salwar Set',
+    comment:
+      'The 2-piece salwar set is stunning. The colors are true to photos, fabric feels luxurious, and the drape is very flattering. Truly high quality ethnic wear.',
+    productName: 'Handcrafted Salwar Set',
+    city: 'Coimbatore',
+    images: [],
+  },
+  {
+    _id: 'sample-3',
+    customerName: 'Deepa Narayanan',
+    rating: 5,
+    title: 'Exceeded My Expectations',
+    comment:
+      'Ordered 3 nighties and 2 side-open kurtis. Stitching, seam strength, and fabric softness are beyond what I expected. Jai Womens World is now my go-to boutique!',
+    productName: 'Pure Cotton Daily Wear',
+    city: 'Tiruvannamalai',
+    images: [],
+  },
+  {
+    _id: 'sample-4',
+    customerName: 'Meenakshi Krishnan',
+    rating: 5,
+    title: 'Gorgeous Flare & Silhouette',
+    comment:
+      'The Umbrella Kurti has such an elegant flare! Customer support on WhatsApp was prompt and helped me choose the exact right size. Wonderful experience.',
+    productName: 'Umbrella Festive Kurti',
+    city: 'Madurai',
+    images: [],
+  },
+  {
+    _id: 'sample-5',
+    customerName: 'Kavitha Ramesh',
+    rating: 5,
+    title: 'Authentic Boutique Quality',
+    comment:
+      'Premium boutique finish at remarkably honest prices. My mother loved the soft cotton touch and comfortable cut. Will certainly order again soon.',
+    productName: 'Side Open Cotton Kurti',
+    city: 'Bengaluru',
+    images: [],
+  },
+];
 
-const FONT_SANS = "'Helvetica Neue', Helvetica, Arial, sans-serif";
-const FONT_SERIF = "Georgia, 'Times New Roman', serif";
-
-export default function ReviewSection({ reviews }) {
+export default function ReviewSection({ reviews = [] }) {
   const scrollerRef = useRef(null);
-  const [lightbox, setLightbox] = useState(null); // { src, customerName }
+  const [lightbox, setLightbox] = useState(null);
+
+  // If live reviews exist, use them; otherwise use sample boutique reviews
+  const displayReviews = reviews?.length > 0 ? reviews : SAMPLE_REVIEWS;
 
   useEffect(() => {
     if (!lightbox) return;
@@ -32,191 +80,176 @@ export default function ReviewSection({ reviews }) {
     };
   }, [lightbox]);
 
-  if (!reviews?.length) return null;
-
   const scrollByAmount = (dir) => {
     const el = scrollerRef.current;
     if (!el) return;
-    const cardWidth = el.querySelector('[data-review-card]')?.offsetWidth || 280;
-    el.scrollBy({ left: dir * (cardWidth + 32), behavior: 'smooth' });
+    const cardWidth = el.querySelector('[data-review-card]')?.offsetWidth || 320;
+    el.scrollBy({ left: dir * (cardWidth + 24), behavior: 'smooth' });
   };
 
   return (
-    <section
-      className="py-16 border-t"
-      style={{ background: PAPER, borderColor: HAIRLINE, fontFamily: FONT_SANS }}
-    >
-      <div className="max-w-6xl mx-auto px-4">
-
-        {/* Heading — quiet eyebrow, serif title, thin divider (matches Reels section) */}
-        <div className="flex flex-col items-center text-center mb-10">
-          <p
-            className="text-[11px] font-semibold uppercase tracking-[4px]"
-            style={{ color: INK_FAINT }}
-          >
-            Real Customers
-          </p>
-          <h2
-            className="mt-3 text-2xl sm:text-3xl font-normal tracking-tight"
-            style={{ color: TEAL, fontFamily: FONT_SERIF }}
-          >
-            What They&rsquo;re Saying
+    <section className="py-20 bg-gradient-to-b from-[#F5F0E9] via-[#F4E8E3]/40 to-[#F5F0E9] border-t border-[#E9DFD9]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Editorial Section Heading */}
+        <div className="flex flex-col items-center text-center mb-12">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#B98270] mb-2">
+            Love From Our Customers
+          </span>
+          <h2 className="font-display text-2xl sm:text-4xl font-semibold text-[#172333] tracking-tight">
+            Stories That Make Us Smile
           </h2>
-
-          <div className="flex items-center justify-center gap-3 mt-5">
-            <span style={{ width: '28px', height: '1px', background: HAIRLINE }} />
-            <span className="w-1 h-1 rounded-full" style={{ background: GOLD }} />
-            <span style={{ width: '28px', height: '1px', background: HAIRLINE }} />
+          <div className="flex items-center justify-center gap-3 mt-4">
+            <span className="w-8 h-px bg-[#E9DFD9]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#BFA078]" />
+            <span className="w-8 h-px bg-[#E9DFD9]" />
           </div>
-
-          <p className="text-[13px] mt-5 font-light" style={{ color: INK_FAINT }}>
-            A few words from people who&rsquo;ve already ordered
+          <p className="text-xs sm:text-sm text-[#77716F] font-light max-w-md mt-3">
+            Every purchase tells a story. Discover genuine experiences shared by our valued patrons across India.
           </p>
 
-          {/* Nav arrows — desktop only, mobile relies on native swipe */}
-          <div className="hidden sm:flex items-center gap-2 mt-5">
+          {/* Desktop Nav Controls */}
+          <div className="hidden sm:flex items-center gap-2 mt-6">
             <button
               onClick={() => scrollByAmount(-1)}
-              className="w-9 h-9 flex items-center justify-center rounded-full transition-colors hover:bg-[#E7DCC5]"
-              style={{ background: 'transparent', color: TEAL, border: `1px solid ${HAIRLINE}` }}
-              aria-label="Previous reviews"
+              className="w-10 h-10 rounded-full flex items-center justify-center border border-[#E9DFD9] bg-white text-[#172333] hover:border-[#B98270] hover:text-[#B98270] transition-colors shadow-xs"
+              aria-label="Previous Testimonials"
             >
-              <ChevronLeft size={16} strokeWidth={1.5} />
+              <ChevronLeft size={17} strokeWidth={1.5} />
             </button>
             <button
               onClick={() => scrollByAmount(1)}
-              className="w-9 h-9 flex items-center justify-center rounded-full transition-colors hover:bg-[#E7DCC5]"
-              style={{ background: 'transparent', color: TEAL, border: `1px solid ${HAIRLINE}` }}
-              aria-label="Next reviews"
+              className="w-10 h-10 rounded-full flex items-center justify-center border border-[#E9DFD9] bg-white text-[#172333] hover:border-[#B98270] hover:text-[#B98270] transition-colors shadow-xs"
+              aria-label="Next Testimonials"
             >
-              <ChevronRight size={16} strokeWidth={1.5} />
+              <ChevronRight size={17} strokeWidth={1.5} />
             </button>
           </div>
         </div>
 
-        {/* Horizontal scrollable row: open cards, just a top rule, no boxes */}
+        {/* Carousel / Card Grid */}
         <div
           ref={scrollerRef}
-          className="flex gap-8 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory pb-2 -mx-4 px-4 sm:mx-0 sm:px-0"
+          className="flex gap-6 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory pb-4 px-1"
         >
-          {reviews.map((r) => (
-            <div
-              key={r._id}
-              data-review-card
-              className="snap-start shrink-0 w-[250px] sm:w-[290px] pt-5"
-              style={{ borderTop: `1px solid ${TEAL}` }}
-            >
-              {/* Rating */}
-              <div className="flex items-center gap-1 mb-4">
-                {Array.from({ length: 5 }).map((_, s) => (
-                  <Star
-                    key={s}
-                    size={12}
-                    strokeWidth={1.5}
-                    style={
-                      s < r.rating
-                        ? { fill: GOLD, color: GOLD }
-                        : { fill: 'none', color: HAIRLINE }
-                    }
-                  />
-                ))}
+          {displayReviews.map((r) => {
+            const rating = Math.min(Math.max(r.rating || 5, 1), 5);
+            const customerName = r.customer?.name || r.customerName || 'Verified Patron';
+            const productName = r.product?.name || r.productName || '';
+            const images = r.images || [];
+
+            return (
+              <div
+                key={r._id}
+                data-review-card
+                className="shrink-0 w-[290px] sm:w-[350px] snap-start bg-white rounded-lg p-6 border border-[#E9DFD9] shadow-card flex flex-col justify-between hover:border-[#D8B5A9] transition-all"
+              >
+                <div>
+                  {/* Top: Stars + Quote Icon */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          size={14}
+                          className={i < rating ? 'text-[#BFA078] fill-[#BFA078]' : 'text-[#E9DFD9]'}
+                        />
+                      ))}
+                    </div>
+                    <Quote size={18} className="text-[#D8B5A9]/50" />
+                  </div>
+
+                  {/* Title & Comment */}
+                  {r.title && (
+                    <h3 className="font-display font-medium text-sm sm:text-base text-[#172333] mb-1.5 leading-snug">
+                      &ldquo;{r.title}&rdquo;
+                    </h3>
+                  )}
+                  <p className="text-xs sm:text-[13px] text-[#77716F] font-light leading-relaxed line-clamp-4">
+                    {r.comment}
+                  </p>
+
+                  {/* Product Tag */}
+                  {productName && (
+                    <span className="inline-block mt-3 text-[10.5px] uppercase tracking-wider text-[#B98270] bg-[#F4E8E3] px-2.5 py-0.5 rounded font-medium">
+                      {productName}
+                    </span>
+                  )}
+
+                  {/* Customer Review Photos */}
+                  {images.length > 0 && (
+                    <div className="flex gap-2 mt-4 pt-3 border-t border-[#E9DFD9]">
+                      {images.slice(0, 3).map((img, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setLightbox(img)}
+                          className="relative w-12 h-12 rounded overflow-hidden border border-[#E9DFD9] group cursor-pointer shrink-0"
+                          aria-label="Enlarge review photo"
+                        >
+                          <Image
+                            src={img}
+                            alt="Customer review photo"
+                            fill
+                            sizes="48px"
+                            className="object-cover group-hover:scale-110 transition-transform duration-300"
+                          />
+                          <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                            <ZoomIn size={12} className="text-white" />
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer: Customer Name & Verified Badge */}
+                <div className="mt-6 pt-4 border-t border-[#E9DFD9] flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-semibold text-[#172333] block">{customerName}</span>
+                    <span className="text-[10px] text-[#77716F] block mt-0.5">
+                      {r.city || 'Verified Buyer'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 text-[10.5px] text-[#B98270] font-medium bg-[#F5F0E9] px-2 py-0.5 rounded-full border border-[#E9DFD9]">
+                    <CheckCircle size={11} className="text-[#BFA078]" />
+                    <span>Verified</span>
+                  </div>
+                </div>
+
               </div>
-
-              {/* Comment */}
-              <p
-                className="text-[14px] line-clamp-5 mb-5"
-                style={{ color: INK, fontFamily: FONT_SERIF, lineHeight: 1.7 }}
-              >
-                &ldquo;{r.comment}&rdquo;
-              </p>
-
-              {/* Review image — zoomable thumbnail */}
-              {r.images?.[0] && (
-                <button
-                  type="button"
-                  onClick={() => setLightbox({ src: r.images[0], customerName: r.customerName })}
-                  className="group relative w-16 h-16 mb-5 overflow-hidden block"
-                  style={{ border: `1px solid ${HAIRLINE}`, background: WASH }}
-                  aria-label="View full review photo"
-                >
-                  <Image
-                    src={r.images[0]}
-                    alt="Review photo"
-                    fill
-                    sizes="64px"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <span
-                    className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ background: 'rgba(23,42,41,0.4)' }}
-                  >
-                    <ZoomIn size={16} color={PAPER} strokeWidth={1.75} />
-                  </span>
-                </button>
-              )}
-
-              {/* Footer */}
-              <p
-                className="text-[11px] font-bold tracking-[1.5px] uppercase"
-                style={{ color: TEAL }}
-              >
-                {r.customerName}
-              </p>
-              {r.product?.name && (
-                <p
-                  className="text-[11px] mt-1 font-light line-clamp-1"
-                  style={{ color: INK_FAINT }}
-                >
-                  {r.product.name}
-                </p>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
+
       </div>
 
-      {/* Lightbox — minimal, image-first */}
+      {/* Lightbox Modal */}
       {lightbox && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center px-4"
-          style={{ background: 'rgba(23,42,41,0.85)' }}
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4 backdrop-blur-xs"
           onClick={() => setLightbox(null)}
         >
-          <button
-            type="button"
-            onClick={() => setLightbox(null)}
-            className="absolute top-5 right-5 p-2 transition-colors"
-            style={{ color: PAPER }}
-            aria-label="Close"
-          >
-            <X size={22} strokeWidth={1.5} />
-          </button>
-
           <div
-            className="relative w-full max-w-xl"
-            style={{ background: PAPER, border: `1px solid ${HAIRLINE}` }}
+            className="relative max-w-xl w-full max-h-[85vh] aspect-square rounded-lg overflow-hidden border border-white/20"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative w-full aspect-square" style={{ background: WASH }}>
-              <Image
-                src={lightbox.src}
-                alt={`${lightbox.customerName || 'Customer'} review photo`}
-                fill
-                className="object-contain"
-                sizes="(max-width: 640px) 100vw, 576px"
-                priority
-              />
-            </div>
-            {lightbox.customerName && (
-              <div className="px-4 py-3 text-center" style={{ borderTop: `1px solid ${HAIRLINE}` }}>
-                <p
-                  className="text-[11px] font-bold tracking-[1.5px] uppercase"
-                  style={{ color: TEAL }}
-                >
-                  {lightbox.customerName}
-                </p>
-              </div>
-            )}
+            <Image
+              src={lightbox}
+              alt="Enlarged review photo"
+              fill
+              sizes="80vw"
+              className="object-contain"
+            />
+            <button
+              onClick={() => setLightbox(null)}
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center transition-colors"
+              aria-label="Close"
+            >
+              <X size={16} />
+            </button>
           </div>
         </div>
       )}

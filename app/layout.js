@@ -1,34 +1,17 @@
 import './globals.css';
-import { Playfair_Display, Poppins } from 'next/font/google';
 import { unstable_cache } from 'next/cache';
 import { Toaster } from 'react-hot-toast';
 import { CartProvider } from '@/components/CartContext';
 import { WishlistProvider } from '@/components/WhishlistContext';
-// import BottomNav from '@/components/BottomNav';
 import { dbConnect } from '@/lib/mongodb';
 import Settings from '@/models/Settings';
 
-const display = Playfair_Display({
-  subsets: ['latin'],
-  variable: '--font-display',
-  weight: ['600', '700', '800'],
-  display: 'swap',
-});
-
-const body = Poppins({
-  subsets: ['latin'],
-  variable: '--font-body',
-  weight: ['300', '400', '500', '600', '700'],
-  display: 'swap',
-});
-
-const SITE_NAME = 'Shea Fashions';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.sheafashions.in';
-const DEFAULT_TITLE = 'Shea Fashions - Women Kurtis, Nighties & Innerwear Online';
+const SITE_NAME = 'Jai Womens World';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jaiwomensworld.com';
+const DEFAULT_TITLE = "Jai Womens World | Premium Women's Fashion Boutique";
 const DEFAULT_DESCRIPTION =
-  'Shop authentic women kurtis, nighties, innerwear and trending collections online from Shea Fashions. Comfortable fits, quality fabrics and great prices with delivery across India.';
-// Place a 1200x630 image at /public/og-image.jpg
-const DEFAULT_OG_IMAGE = '/og-image.jpg';
+  "Discover timeless women's fashion at Jai Womens World. Thoughtfully curated kurtis, salwar sets, nighties and chic ethnic boutique collections in Tiruvannamalai, Tamil Nadu.";
+const DEFAULT_OG_IMAGE = '/Jai-logo.jpeg';
 
 // Cached for 1 hour. Call revalidateTag('settings') after saving settings in admin.
 const getSeoSettings = unstable_cache(
@@ -36,10 +19,14 @@ const getSeoSettings = unstable_cache(
     try {
       await dbConnect();
       const s = await Settings.findOne({ key: 'global' })
-        .select('seoTitle seoDescription')
+        .select('seoTitle seoDescription storeName')
         .lean();
       return s
-        ? { seoTitle: s.seoTitle || null, seoDescription: s.seoDescription || null }
+        ? {
+            seoTitle: s.seoTitle || null,
+            seoDescription: s.seoDescription || null,
+            storeName: s.storeName || SITE_NAME,
+          }
         : null;
     } catch {
       return null;
@@ -54,27 +41,37 @@ export async function generateMetadata() {
 
   const title = settings?.seoTitle || DEFAULT_TITLE;
   const description = settings?.seoDescription || DEFAULT_DESCRIPTION;
+  const brandName = settings?.storeName || SITE_NAME;
 
   return {
     metadataBase: new URL(SITE_URL),
-    title: { default: title, template: `%s | ${SITE_NAME}` },
+    title: { default: title, template: `%s | ${brandName}` },
     description,
-    applicationName: SITE_NAME,
+    applicationName: brandName,
     keywords: [
-      'women kurtis online',
-      'kurtis for women',
-      'cotton kurtis',
-      'nighties online',
-      'night wear for women',
-      'innerwear online',
-      'ladies innerwear',
-      'Shea Fashions',
-      'women fashion India',
+      "women's clothing",
+      "women's fashion boutique",
+      "ethnic wear for women",
+      'salwar set online',
+      'kurtis online',
+      'nighties collection',
+      'boutique shopping Tiruvannamalai',
+      'women fashion store Tamil Nadu',
+      'Jai Womens World',
     ],
-    authors: [{ name: SITE_NAME, url: SITE_URL }],
-    creator: SITE_NAME,
-    publisher: SITE_NAME,
+    authors: [{ name: brandName, url: SITE_URL }],
+    creator: brandName,
+    publisher: brandName,
     category: 'fashion',
+    icons: {
+      icon: [
+        { url: '/Jai-logo.jpeg?v=3', type: 'image/jpeg' },
+        { url: '/icon.png?v=3', type: 'image/png' },
+        { url: '/favicon.ico?v=3', sizes: 'any' },
+      ],
+      shortcut: ['/Jai-logo.jpeg?v=3'],
+      apple: [{ url: '/Jai-logo.jpeg?v=3' }],
+    },
     alternates: {
       canonical: '/',
     },
@@ -93,15 +90,15 @@ export async function generateMetadata() {
       title,
       description,
       url: SITE_URL,
-      siteName: SITE_NAME,
+      siteName: brandName,
       locale: 'en_IN',
       type: 'website',
       images: [
         {
           url: DEFAULT_OG_IMAGE,
-          width: 1200,
-          height: 630,
-          alt: `${SITE_NAME} - Women Kurtis, Nighties & More`,
+          width: 800,
+          height: 800,
+          alt: `${brandName} - Premium Women's Fashion Boutique`,
         },
       ],
     },
@@ -112,28 +109,23 @@ export async function generateMetadata() {
       images: [DEFAULT_OG_IMAGE],
     },
     formatDetection: {
-      telephone: false,
-      email: false,
-      address: false,
+      telephone: true,
+      email: true,
+      address: true,
     },
-    // Add NEXT_PUBLIC_GOOGLE_VERIFICATION to .env to verify Google Search Console
     verification: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION
       ? { google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION }
       : undefined,
-    icons: {
-      icon: '/favicon.ico',
-      apple: '/apple-touch-icon.png',
-    },
   };
 }
 
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#ffffff',
+  themeColor: '#F5F0E9',
 };
 
-// Structured data (JSON-LD) so Google can understand the brand and site
+// Structured data (JSON-LD) for Google search indexation
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
@@ -142,9 +134,14 @@ const jsonLd = {
       '@id': `${SITE_URL}/#organization`,
       name: SITE_NAME,
       url: SITE_URL,
-      logo: `${SITE_URL}/logo.png`,
-      // Add your social profile URLs here, e.g. Instagram, Facebook
-      sameAs: [],
+      logo: `${SITE_URL}/Jai-logo.jpeg`,
+      contactPoint: {
+        '@type': 'ContactPoint',
+        telephone: '+91-9500381414',
+        contactType: 'customer service',
+        areaServed: 'IN',
+        availableLanguage: ['English', 'Tamil'],
+      },
     },
     {
       '@type': 'WebSite',
@@ -154,14 +151,43 @@ const jsonLd = {
       inLanguage: 'en-IN',
       publisher: { '@id': `${SITE_URL}/#organization` },
     },
+    {
+      '@type': 'ClothingStore',
+      '@id': `${SITE_URL}/#store`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      image: `${SITE_URL}/Jai-logo.jpeg`,
+      telephone: '+91-9500381414',
+      email: 'jaiwomensworld@gmail.com',
+      priceRange: '₹₹',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: '24, Chengam Road, 2nd Street',
+        addressLocality: 'Tiruvannamalai',
+        addressRegion: 'Tamil Nadu',
+        postalCode: '606601',
+        addressCountry: 'IN',
+      },
+    },
   ],
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en-IN">
-      {/* background comes from globals.css (white) */}
-      <body className={`${display.variable} ${body.variable} font-body antialiased`}>
+      <head>
+        <link rel="icon" href="/icon.png?v=3" type="image/png" sizes="192x192" />
+        <link rel="icon" href="/Jai-logo.jpeg?v=3" type="image/jpeg" />
+        <link rel="shortcut icon" href="/Jai-logo.jpeg?v=3" type="image/jpeg" />
+        <link rel="apple-touch-icon" href="/icon.png?v=3" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="font-body antialiased selection:bg-[#B98270] selection:text-white">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -172,11 +198,7 @@ export default function RootLayout({ children }) {
         <CartProvider>
           <WishlistProvider>
             {children}
-
-            {/* spacer so page content isn't hidden behind the fixed mobile nav */}
-            <div className="md:hidden h-16" />
-
-            {/* <BottomNav /> */}
+            <div className="md:hidden h-14" />
           </WishlistProvider>
         </CartProvider>
 
@@ -185,18 +207,19 @@ export default function RootLayout({ children }) {
           toastOptions={{
             style: {
               fontFamily: 'var(--font-body)',
-              background: '#fff',
-              color: '#241B21',
-              border: '1px solid #EEE3DA',
+              background: '#FFFFFF',
+              color: '#171717',
+              border: '1px solid #E9DFD9',
               borderRadius: '6px',
               fontSize: '13px',
               fontWeight: '500',
+              boxShadow: '0 8px 24px rgba(23,35,51,0.08)',
             },
             success: {
-              iconTheme: { primary: '#D9946A', secondary: '#fff' },
+              iconTheme: { primary: '#B98270', secondary: '#FFFFFF' },
             },
             error: {
-              iconTheme: { primary: '#C17F55', secondary: '#fff' },
+              iconTheme: { primary: '#B0503A', secondary: '#FFFFFF' },
             },
           }}
         />

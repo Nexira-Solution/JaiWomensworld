@@ -2,18 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Heart } from 'lucide-react';
+import { Heart, ArrowRight, Sparkles } from 'lucide-react';
 import { useWishlist } from '@/components/WhishlistContext';
 import ProductCard from '@/components/ProductCard';
-
-// Theme: #064E4A (deep teal), #C49A45 (gold), #FFFDF5 (cream), #172A29 (dark teal), #E7DCC5 (sand)
-const INK = '#172A29';          // primary text
-const INK_SOFT = '#6B7F7C';     // muted text (derived teal-gray)
-const PEACH = '#C49A45';        // accent (gold) - empty-state icon
-const PEACH_WASH = '#F4ECD8';   // light sand tint (loading placeholders)
-const PAPER = '#FFFDF5';        // page background (cream)
-const SAGE = '#064E4A';         // deep teal (primary button)
-const FONT_SERIF = "Georgia, 'Times New Roman', serif";
 
 export default function WishlistPage() {
   const { wishlist } = useWishlist();
@@ -36,7 +27,7 @@ export default function WishlistPage() {
         const res = await fetch('/api/products/by-ids', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ids: wishlist })
+          body: JSON.stringify({ ids: wishlist }),
         });
         const data = await res.json();
         if (active) setProducts(data.products || []);
@@ -54,47 +45,68 @@ export default function WishlistPage() {
   }, [wishlist]);
 
   return (
-    <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 sm:py-16 min-h-[60vh]" style={{ background: PAPER }}>
-      <div className="mb-10">
-        <h1 className="text-[24px] sm:text-[28px]" style={{ fontFamily: FONT_SERIF, color: INK }}>
-          My Wishlist
-        </h1>
-        <p className="text-sm mt-1.5" style={{ color: INK_SOFT }}>
-          {products.length > 0
-            ? `${products.length} item${products.length > 1 ? 's' : ''} saved`
-            : 'Items you save will show up here'}
-        </p>
+    <div className="bg-[#F5F0E9] min-h-[70vh] py-10 sm:py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Header */}
+        <div className="mb-10 pb-6 border-b border-[#E9DFD9] flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-1.5 text-[10.5px] uppercase tracking-[0.22em] font-semibold text-[#B98270] mb-2">
+              <Sparkles size={12} className="text-[#BFA078]" />
+              Personal Curation
+            </div>
+            <h1 className="font-display text-2xl sm:text-4xl font-semibold text-[#172333]">
+              My Saved Wishlist
+            </h1>
+            <p className="text-xs sm:text-sm text-[#77716F] font-light mt-1">
+              Your favorite boutique designs, saved in one place for effortless shopping.
+            </p>
+          </div>
+
+          <div className="text-xs text-[#77716F] bg-white px-3.5 py-1.5 rounded-full border border-[#E9DFD9] self-start sm:self-end">
+            <strong className="text-[#172333] font-semibold">{products.length}</strong> {products.length === 1 ? 'Design' : 'Designs'} Saved
+          </div>
+        </div>
+
+        {/* Loading Skeleton */}
+        {loading && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="aspect-[3/4] rounded-lg bg-white/60 animate-pulse border border-[#E9DFD9]" />
+            ))}
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!loading && products.length === 0 && (
+          <div className="py-20 text-center bg-white rounded-xl border border-[#E9DFD9] p-8 max-w-lg mx-auto shadow-card">
+            <div className="w-16 h-16 rounded-full bg-[#F4E8E3] flex items-center justify-center mx-auto mb-4 text-[#B98270]">
+              <Heart size={26} strokeWidth={1.5} />
+            </div>
+            <h3 className="font-display text-xl font-semibold text-[#172333]">Your Wishlist is Empty</h3>
+            <p className="text-xs sm:text-sm text-[#77716F] mt-2 font-light max-w-xs mx-auto leading-relaxed">
+              Tap the heart icon on any design in our collection to save it for later.
+            </p>
+            <Link
+              href="/products"
+              className="mt-6 inline-flex items-center gap-2 px-8 py-3.5 rounded bg-[#172333] hover:bg-[#B98270] text-white text-xs uppercase tracking-[0.16em] font-medium transition-all shadow-boutique"
+            >
+              <span>Explore Collection</span>
+              <ArrowRight size={14} />
+            </Link>
+          </div>
+        )}
+
+        {/* Products Grid */}
+        {!loading && products.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+            {products.map((product) => (
+              <ProductCard key={product._id} product={product} />
+            ))}
+          </div>
+        )}
+
       </div>
-
-      {loading && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="aspect-[3/4]" style={{ background: PEACH_WASH, borderRadius: '4px' }} />
-          ))}
-        </div>
-      )}
-
-      {!loading && products.length === 0 && (
-        <div className="text-center py-20">
-          <Heart size={28} strokeWidth={1.5} className="mx-auto mb-3" style={{ color: PEACH, opacity: 0.6 }} />
-          <p className="text-sm mb-5" style={{ color: INK_SOFT }}>Your wishlist is empty</p>
-          <Link
-            href="/"
-            className="inline-block px-6 py-3 text-sm font-medium transition-opacity active:opacity-80"
-            style={{ background: SAGE, color: PAPER, borderRadius: '4px' }}
-          >
-            Start Shopping
-          </Link>
-        </div>
-      )}
-
-      {!loading && products.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
-          {products.map((product) => (
-            <ProductCard key={product._id} product={product} />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

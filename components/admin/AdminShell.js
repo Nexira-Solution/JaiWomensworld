@@ -2,20 +2,31 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  LayoutDashboard, Package, ListTree, ShoppingCart, Boxes, Image as ImageIcon,Sparkles,
+  LayoutDashboard, Package, ListTree, ShoppingCart, Boxes, Image as ImageIcon, Sparkles,
   Clapperboard, Star, Ticket, Layers, FileBarChart, Settings as SettingsIcon, Menu, X, LogOut
 } from 'lucide-react';
 
-// Design tokens — same teal / gold / cream system as the rest of the site.
-// Palette: #064E4A #C49A45 #FFFDF5 #172A29 #E7DCC5
-const INK = '#172A29';
-const INK_SOFT = '#6B7C7A';
-const TEAL = '#064E4A';
-const WASH = '#F5EFE0';   // hover fill (light tint of sand)
-const LINE = '#E7DCC5';
-const PAPER = '#FFFDF5';
+// Admin theme tokens matching Jai Womens World Brand Palette:
+// Main background: #F5F0E9
+// Sidebar background: #172333
+// Primary buttons: #172333
+// Accent: #B98270
+// Card background: #FFFFFF
+// Main text: #171717
+// Secondary text: #77716F
+// Borders: #E9DFD9
+
+const INK = '#171717';
+const INK_SOFT = '#77716F';
+const SIDEBAR_BG = '#172333';
+const SIDEBAR_HOVER = '#243347';
+const ACCENT = '#B98270';
+const BLUSH = '#D8B5A9';
+const LINE = '#E9DFD9';
+const PAPER = '#F5F0E9';
 
 const NAV = [
   { href: '/admin',            label: 'Dashboard',     icon: LayoutDashboard },
@@ -29,7 +40,7 @@ const NAV = [
   { href: '/admin/reviews',    label: 'Reviews',       icon: Star },
   { href: '/admin/coupons',    label: 'Coupons',       icon: Ticket },
   { href: '/admin/reports',    label: 'Sales Reports', icon: FileBarChart },
-     { href: '/admin/cofounder', label: 'AI Cofounder', icon: Sparkles },
+  { href: '/admin/cofounder',  label: 'AI Cofounder',  icon: Sparkles },
   { href: '/admin/settings',   label: 'Settings',      icon: SettingsIcon },
 ];
 
@@ -44,46 +55,50 @@ export default function AdminShell({ admin, children }) {
   }
 
   return (
-    <div className="min-h-screen flex" style={{ background: PAPER }}>
+    <div className="min-h-screen flex" style={{ background: PAPER, color: INK }}>
       {/* Mobile overlay */}
       {open && (
         <div
           className="fixed inset-0 z-40 lg:hidden"
-          style={{ background: 'rgba(23,42,41,0.4)' }}
+          style={{ background: 'rgba(23, 35, 51, 0.6)', backdropFilter: 'blur(2px)' }}
           onClick={() => setOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - Fixed on desktop, slide-out drawer on mobile */}
       <aside
-        className={`fixed lg:static z-50 inset-y-0 left-0 w-64 transform transition-transform lg:translate-x-0 ${
+        className={`fixed z-50 inset-y-0 left-0 w-64 h-screen transform transition-transform duration-300 lg:translate-x-0 flex flex-col ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
         style={{
-          background: PAPER,
-          borderRight: `1px solid ${LINE}`,
+          background: SIDEBAR_BG,
+          borderRight: `1px solid rgba(233, 223, 217, 0.12)`,
         }}
       >
         {/* Sidebar header */}
         <div
-          className="flex items-center justify-between px-5 py-4"
-          style={{ borderBottom: `1px solid ${LINE}` }}
+          className="flex items-center justify-between px-5 py-4.5 border-b shrink-0"
+          style={{ borderColor: 'rgba(233, 223, 217, 0.12)' }}
         >
-          <div className="flex flex-col leading-tight">
-            <span className="font-medium text-base" style={{ color: TEAL }}>
-              Shea Fashions
-            </span>
-            <span
-              className="text-[10px] tracking-widest uppercase mt-0.5"
-              style={{ color: INK_SOFT }}
-            >
-              Admin Panel
-            </span>
+          <div className="flex items-center gap-3">
+            <div className="relative w-9 h-9 rounded-full overflow-hidden bg-white/10 p-0.5 border border-[#BFA078]/40 shrink-0">
+              <Image src="/Jai-logo.jpeg" alt="Jai Womens World" fill className="object-cover" />
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="font-display font-semibold text-base text-white">
+                Jai Womens World
+              </span>
+              <span
+                className="text-[9.5px] tracking-[0.2em] uppercase mt-0.5"
+                style={{ color: BLUSH }}
+              >
+                Administration
+              </span>
+            </div>
           </div>
           <button
-            className="lg:hidden"
+            className="lg:hidden text-white/60 hover:text-white"
             onClick={() => setOpen(false)}
-            style={{ color: INK_SOFT }}
             aria-label="Close menu"
           >
             <X size={20} />
@@ -91,7 +106,7 @@ export default function AdminShell({ admin, children }) {
         </div>
 
         {/* Nav links */}
-        <nav className="p-3 space-y-0.5 overflow-y-auto h-[calc(100vh-65px)]">
+        <nav className="p-3 space-y-1 flex-1 overflow-y-auto no-scrollbar">
           {NAV.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || (href !== '/admin' && pathname.startsWith(href));
             return (
@@ -99,72 +114,74 @@ export default function AdminShell({ admin, children }) {
                 key={href}
                 href={href}
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors"
+                className="flex items-center gap-3 px-3.5 py-2.5 text-xs font-medium rounded transition-colors"
                 style={{
-                  borderRadius: '4px',
-                  background: active ? TEAL : 'transparent',
-                  color: active ? PAPER : INK_SOFT,
+                  background: active ? ACCENT : 'transparent',
+                  color: active ? '#FFFFFF' : '#E9DFD9',
                 }}
                 onMouseEnter={(e) => {
                   if (!active) {
-                    e.currentTarget.style.background = WASH;
-                    e.currentTarget.style.color = INK;
+                    e.currentTarget.style.background = SIDEBAR_HOVER;
+                    e.currentTarget.style.color = '#FFFFFF';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!active) {
                     e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = INK_SOFT;
+                    e.currentTarget.style.color = '#E9DFD9';
                   }
                 }}
               >
-                <Icon size={17} />
-                {label}
+                <Icon size={16} strokeWidth={active ? 2 : 1.75} />
+                <span className="tracking-wide">{label}</span>
               </Link>
             );
           })}
 
-          {/* Divider */}
-          <div className="my-3" style={{ height: '1px', background: LINE }} />
+          <div className="my-3 border-t" style={{ borderColor: 'rgba(233, 223, 217, 0.12)' }} />
 
           {/* Logout */}
           <button
             onClick={logout}
-            className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium w-full transition-colors"
-            style={{ borderRadius: '4px', color: INK_SOFT }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = WASH;
-              e.currentTarget.style.color = INK;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = INK_SOFT;
-            }}
+            className="flex items-center gap-3 px-3.5 py-2.5 text-xs font-medium w-full rounded transition-colors text-[#D8B5A9] hover:bg-[#243347] hover:text-white"
           >
-            <LogOut size={17} /> Logout
+            <LogOut size={16} />
+            <span className="tracking-wide">Sign Out</span>
           </button>
         </nav>
       </aside>
 
-      {/* Main content area */}
-      <div className="flex-1 min-w-0">
+      {/* Main content area - offset by lg:pl-64 to accommodate fixed sidebar */}
+      <div className="flex-1 min-w-0 flex flex-col lg:pl-64">
         {/* Mobile topbar */}
         <header
-          className="lg:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3"
+          className="lg:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3 border-b shadow-xs"
           style={{
-            background: PAPER,
-            borderBottom: `1px solid ${LINE}`,
+            background: '#FFFFFF',
+            borderColor: LINE,
           }}
         >
-          <button onClick={() => setOpen(true)} style={{ color: INK }} aria-label="Open menu">
-            <Menu size={22} />
-          </button>
-          <span className="font-medium text-base" style={{ color: TEAL }}>
-            Shea Fashions Admin
-          </span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setOpen(true)}
+              className="text-[#172333] p-1 rounded hover:bg-black/5"
+              aria-label="Open menu"
+            >
+              <Menu size={22} />
+            </button>
+            <span className="font-display font-semibold text-base text-[#172333]">
+              Jai Womens World Admin
+            </span>
+          </div>
+
+          <div className="relative w-8 h-8 rounded-full overflow-hidden border border-[#E9DFD9]">
+            <Image src="/Jai-logo.jpeg" alt="Jai Womens World" fill className="object-cover" />
+          </div>
         </header>
 
-        <main className="p-4 sm:p-6 max-w-6xl" style={{ color: INK }}>{children}</main>
+        <main className="p-4 sm:p-6 lg:p-8 max-w-7xl w-full flex-1" style={{ color: INK }}>
+          {children}
+        </main>
       </div>
     </div>
   );

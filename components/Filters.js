@@ -1,14 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { ChevronDown } from 'lucide-react';
-
-// Palette: #064E4A #C49A45 #FFFDF5 #172A29 #E7DCC5
-const INK = '#172A29';
-const INK_FAINT = '#6B7C7A';
-const GOLD = '#C49A45';
-const HAIRLINE = '#E7DCC5';
-const PAPER = '#FFFDF5';
+import { ChevronDown, SlidersHorizontal } from 'lucide-react';
 
 export default function Filters({ sort, onSortChange }) {
   const router = useRouter();
@@ -27,38 +20,31 @@ export default function Filters({ sort, onSortChange }) {
   };
 
   return (
-    <div
-      className="flex items-center justify-end py-3 px-1"
-      style={{ background: PAPER, borderBottom: `1px solid ${HAIRLINE}` }}
-    >
-      <div className="flex items-center gap-2.5 shrink-0">
-        <span
-          className="text-[11px] font-normal tracking-[1.5px] uppercase"
-          style={{ color: INK_FAINT }}
-        >
-          Sort
-        </span>
+    <div className="flex items-center justify-between py-3.5 px-4 mb-6 rounded-md bg-white border border-[#E9DFD9]">
+      <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-[#77716F] font-medium">
+        <SlidersHorizontal size={14} className="text-[#B98270]" />
+        <span>Sort &amp; Filter</span>
+      </div>
 
+      <div className="flex items-center gap-2">
+        <span className="text-[11px] uppercase tracking-wider text-[#77716F]">
+          Arrange:
+        </span>
         <div className="relative">
           <select
             value={sort}
             onChange={(e) => handleChange(e.target.value)}
-            className="appearance-none bg-transparent outline-none text-[12px] tracking-wide pr-6 py-1"
-            style={{ color: INK, borderBottom: `1px solid ${HAIRLINE}` }}
-            onFocus={(e) => (e.currentTarget.style.borderBottomColor = GOLD)}
-            onBlur={(e) => (e.currentTarget.style.borderBottomColor = HAIRLINE)}
+            className="appearance-none bg-transparent outline-none text-xs font-medium text-[#171717] pr-6 py-1 cursor-pointer focus:text-[#B98270]"
           >
-            {/* <option value="newest">Newest</option> */}
+            <option value="newest">Newest Arrivals</option>
+            <option value="bestselling">Most Loved / Popular</option>
             <option value="priceLow">Price: Low to High</option>
             <option value="priceHigh">Price: High to Low</option>
-            <option value="newarrival">New Arrival</option>
-            <option value="bestselling">Best Selling</option>
           </select>
           <ChevronDown
-            size={12}
+            size={13}
             strokeWidth={1.5}
-            className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none"
-            style={{ color: INK_FAINT }}
+            className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none text-[#77716F]"
           />
         </div>
       </div>

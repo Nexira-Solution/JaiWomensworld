@@ -4,35 +4,89 @@ import { getProductPageData } from '@/lib/products';
 import { toCardProduct } from '@/lib/cardProduct';
 import ProductClient from './ProductClient';
 
-// ISR: served from the CDN, regenerated in the background at most every 10 minutes.
-// (Was 60s, which re-ran the DB queries up to 1,440 times a day per product.)
-// For instant updates, call revalidatePath(`/product/${slug}`) when admin saves a product.
 export const revalidate = 600;
 
-// generateMetadata() and the page both need the same data. cache() makes the
-// DB queries run once per render instead of twice.
 const getData = cache(getProductPageData);
 
 export async function generateMetadata({ params }) {
-  const { slug } = await params; // on Next 14 use: const { slug } = params;
-  const data = await getData(slug);
-  if (!data?.product) return {};
-  const firstImage = data.product.variants?.[0]?.images?.[0];
-  return {
-    title: data.product.name,
-    description: data.product.description?.slice(0, 160),
-    openGraph: { images: firstImage ? [firstImage] : [] },
-  };
+  const { slug } = await params;
+  try {
+    const data = await getData(slug);
+    if (!data?.product) return {};
+    const firstImage = data.product.variants?.[0]?.images?.[0] || '/Jai-logo.jpeg';
+    const price = data.product.basePrice || data.product.variants?.[0]?.price || 0;
+
+    return {
+      title: `${data.product.name} | Jai Womens World`,
+      description:
+        data.product.description?.slice(0, 160) ||
+        `Explore ${data.product.name} at Jai Womens World. Premium quality women's boutique fashion in Tiruvannamalai, Tamil Nadu. Fast delivery across India.`,
+      openGraph: {
+        title: `${data.product.name} | Jai Womens World`,
+        description: data.product.description?.slice(0, 160),
+        images: [firstImage],
+      },
+      other: {
+        'product:price:amount': String(price),
+        'product:price:currency': 'INR',
+      },
+    };
+  } catch {
+    return {
+      title: 'Product | Jai Womens World',
+    };
+  }
 }
 
 export default async function Page({ params }) {
-  const { slug } = await params; // on Next 14 use: const { slug } = params;
-  const data = await getData(slug);
+  const { slug } = await params;
+  let data = null;
+  try {
+    data = await getData(slug);
+  } catch (err) {
+    console.error('Error loading product page:', err?.message || err);
+  }
   if (!data?.product) notFound();
 
-  // Related products only need the card fields. Everything passed to a client
-  // component is serialized into the page HTML, so send less.
   const trimmed = { ...data, related: (data.related || []).map(toCardProduct) };
 
-  return <ProductClient data={trimmed} />;
+  // JSON-LD Product Schema
+  const firstVariant = data.product.variants?.[0];
+  const price = data.product.basePrice || firstVariant?.price || 0;
+  const productSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: data.product.name,
+    image: firstVariant?.images || ['/Jai-logo.jpeg'],
+    description: data.product.description || `Handcrafted women's fashion design by Jai Womens World.`,
+    brand: {
+      '@type': 'Brand',
+      name: 'Jai Womens World',
+    },
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'INR',
+      price: price,
+      availability:
+        firstVariant?.stock > 0
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/OutOfStock',
+      seller: {
+        '@type': 'Organization',
+        name: 'Jai Womens World',
+      },
+    },
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(productSchema).replace(/</g, '\\u003c'),
+        }}
+      />
+      <ProductClient data={trimmed} />
+    </>
+  );
 }

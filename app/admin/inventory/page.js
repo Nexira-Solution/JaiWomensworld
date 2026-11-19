@@ -163,102 +163,110 @@ export default function AdminInventoryPage() {
 
   function ProductStockTable({ list }) {
     return (
-      <table className="w-full text-sm mb-2">
-        <thead>
-          <tr className="text-left border-b border-brand-ink/10 text-brand-ink/40 text-xs">
-            <th className="p-2">Image</th>
-            <th className="p-2">Product</th>
-            <th className="p-2">Product SKU</th>
-            <th className="p-2">Color</th>
-            <th className="p-2">Size</th>
-            <th className="p-2">Size SKU</th>
-            <th className="p-2">Stock</th>
-            <th className="p-2"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {list.flatMap((p) =>
-            p.variants.flatMap((v) =>
-              v.sizes.map((s) => {
-                const key = editKey(p._id, v._id, s.size);
-                const value = edits[key] !== undefined ? edits[key] : s.stock;
-                const img = variantImage(p, v);
-                return (
-                  <tr key={key} className="border-b border-brand-ink/5">
-                    <td className="p-2">
-                      {img ? (
-                        <button
-                          type="button"
-                          onClick={() => setZoomImage({ src: img, alt: `${p.name} - ${v.color}` })}
-                          className="block w-12 h-12 rounded-lg overflow-hidden border border-brand-ink/10 hover:opacity-80 transition-opacity"
-                          title="Click to zoom"
+      <div className="overflow-x-auto w-full my-2 rounded-lg border border-[#E9DFD9] bg-white shadow-xs">
+        <table className="w-full text-sm min-w-[680px]">
+          <thead>
+            <tr className="text-left border-b border-[#E9DFD9] bg-[#F5F0E9] text-[#77716F] text-xs uppercase tracking-wider font-semibold">
+              <th className="p-3 w-16">Image</th>
+              <th className="p-3">Product</th>
+              <th className="p-3">Product SKU</th>
+              <th className="p-3">Color</th>
+              <th className="p-3">Size</th>
+              <th className="p-3">Size SKU</th>
+              <th className="p-3">Stock</th>
+              <th className="p-3 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#E9DFD9]/60">
+            {list.flatMap((p) =>
+              p.variants.flatMap((v) =>
+                v.sizes.map((s) => {
+                  const key = editKey(p._id, v._id, s.size);
+                  const value = edits[key] !== undefined ? edits[key] : s.stock;
+                  const img = variantImage(p, v);
+                  return (
+                    <tr key={key} className="hover:bg-[#F5F0E9]/30 transition-colors">
+                      <td className="p-3">
+                        {img ? (
+                          <button
+                            type="button"
+                            onClick={() => setZoomImage({ src: img, alt: `${p.name} - ${v.color}` })}
+                            className="block w-11 h-11 rounded-md overflow-hidden border border-[#E9DFD9] hover:opacity-80 transition-opacity"
+                            title="Click to zoom"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={img}
+                              alt={`${p.name} - ${v.color}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </button>
+                        ) : (
+                          <div className="w-11 h-11 rounded-md bg-[#F5F0E9] flex items-center justify-center text-[10px] text-[#77716F]">
+                            No img
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-3 font-medium text-[#172333]">
+                        <Link
+                          href={`/product/${p.slug || p._id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:text-[#B98270] hover:underline"
                         >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={img}
-                            alt={`${p.name} - ${v.color}`}
-                            className="w-full h-full object-cover"
-                          />
+                          {p.name}
+                        </Link>
+                      </td>
+                      <td className="p-3 text-xs text-[#77716F]">{p.sku || '—'}</td>
+                      <td className="p-3 text-xs text-[#172333] font-medium">{v.color}</td>
+                      <td className="p-3 text-xs text-[#172333] font-semibold">{s.size}</td>
+                      <td className="p-3 text-xs text-[#77716F]">{s.sku || '—'}</td>
+                      <td className="p-3">
+                        <input
+                          type="number"
+                          className={`w-20 border rounded-md px-2.5 py-1 text-sm bg-white outline-none focus:border-[#B98270] transition-colors ${
+                            value <= 5 ? 'border-[#B98270] text-[#B98270] font-semibold' : 'border-[#E9DFD9] text-[#172333]'
+                          }`}
+                          value={value}
+                          onChange={(e) => setStock(p._id, v._id, s.size, e.target.value)}
+                        />
+                      </td>
+                      <td className="p-3 text-right">
+                        <button
+                          onClick={() => saveRow(p, v, s)}
+                          className="p-1.5 rounded-md hover:bg-[#F5F0E9] text-[#B98270] hover:text-[#172333] transition-colors"
+                          title="Save stock"
+                        >
+                          <Save size={16} />
                         </button>
-                      ) : (
-                        <div className="w-12 h-12 rounded-lg bg-brand-ink/5 flex items-center justify-center text-[10px] text-brand-ink/30">
-                          No image
-                        </div>
-                      )}
-                    </td>
-                    <td className="p-2">
-                      <Link
-                        href={`/product/${p.slug || p._id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-brand-magenta hover:underline"
-                      >
-                        {p.name}
-                      </Link>
-                    </td>
-                    <td className="p-2 text-xs text-brand-ink/50">{p.sku || '—'}</td>
-                    <td className="p-2">{v.color}</td>
-                    <td className="p-2">{s.size}</td>
-                    <td className="p-2 text-xs text-brand-ink/50">{s.sku || '—'}</td>
-                    <td className="p-2">
-                      <input
-                        type="number"
-                        className={`w-20 border rounded-lg px-2 py-1 text-sm ${value <= 5 ? 'border-brand-magenta text-brand-magenta' : ''}`}
-                        value={value}
-                        onChange={(e) => setStock(p._id, v._id, s.size, e.target.value)}
-                      />
-                    </td>
-                    <td className="p-2">
-                      <button onClick={() => saveRow(p, v, s)} className="text-brand-magenta">
-                        <Save size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })
-            )
-          )}
-        </tbody>
-      </table>
+                      </td>
+                    </tr>
+                  );
+                })
+              )
+            )}
+          </tbody>
+        </table>
+      </div>
     );
   }
 
   return (
-    <div>
-      <h1 className="font-display text-2xl font-bold text-brand-magenta mb-5">Inventory</h1>
+    <div className="w-full max-w-full overflow-hidden">
+      <h1 className="font-display text-2xl font-bold text-[#172333] mb-5">Inventory</h1>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-4">
         <div className="relative flex-1 min-w-[220px]">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-ink/40" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#77716F]" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by product name or SKU..."
-            className="w-full pl-9 pr-8 py-2 text-sm rounded-lg border border-brand-ink/10 outline-none"
+            className="w-full pl-9 pr-8 py-2 text-sm rounded-lg border border-[#E9DFD9] bg-white text-[#171717] outline-none focus:border-[#B98270]"
           />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-brand-ink/40">
+            <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#77716F]">
               <X size={14} />
             </button>
           )}
@@ -267,7 +275,7 @@ export default function AdminInventoryPage() {
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="px-3 py-2 text-sm rounded-lg border border-brand-ink/10 outline-none"
+          className="px-3 py-2 text-sm rounded-lg border border-[#E9DFD9] bg-white text-[#171717] outline-none focus:border-[#B98270]"
         >
           <option value="all">All Categories</option>
           {categories.filter((c) => !c.parent).map((parent) => (
@@ -291,19 +299,19 @@ export default function AdminInventoryPage() {
             .map((parent) => (
               <div
                 key={parent._id}
-                className="px-3 py-2 rounded-lg text-xs border border-brand-ink/10 bg-white"
+                className="px-3 py-2 rounded-lg text-xs border border-[#E9DFD9] bg-white shadow-xs"
               >
-                <span className="font-semibold text-brand-magenta">{parent.name}</span>
-                <span className="text-brand-ink/50"> — {categoryCounts.total[parent._id] || 0} products</span>
+                <span className="font-semibold text-[#172333]">{parent.name}</span>
+                <span className="text-[#77716F]"> — {categoryCounts.total[parent._id] || 0} products</span>
               </div>
             ))}
         </div>
       )}
 
       {loading ? (
-        <p className="text-brand-ink/50">Loading...</p>
+        <p className="text-[#77716F]">Loading...</p>
       ) : grouped.length === 0 ? (
-        <p className="text-center text-brand-ink/40 py-10">No products match your filters.</p>
+        <p className="text-center text-[#77716F] py-10">No products match your filters.</p>
       ) : (
         <div className="space-y-4">
           {grouped.map(({ parent, directProducts, childGroups }) => {
@@ -315,25 +323,25 @@ export default function AdminInventoryPage() {
               directProducts.length + childGroups.reduce((sum, g) => sum + g.products.length, 0);
 
             return (
-              <div key={parent._id} className="card-soft">
+              <div key={parent._id} className="rounded-xl border border-[#E9DFD9] bg-white overflow-hidden shadow-xs">
                 <button
                   onClick={() => toggleCollapse(parent._id)}
-                  className="w-full flex items-center justify-between p-3"
+                  className="w-full flex items-center justify-between p-3.5 bg-[#F5F0E9]/50 hover:bg-[#F5F0E9] transition-colors"
                 >
-                  <span className="flex items-center gap-2 font-display font-bold text-brand-magenta">
+                  <span className="flex items-center gap-2 font-display font-bold text-[#172333]">
                     {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
                     {parent.name}
                   </span>
-                  <span className="text-xs text-brand-ink/50">
+                  <span className="text-xs text-[#77716F]">
                     {parentProductCount} products &middot; {parentStock} units in stock
                   </span>
                 </button>
 
                 {!isCollapsed && (
-                  <div className="px-3 pb-3">
+                  <div className="p-3 sm:p-4 overflow-hidden">
                     {directProducts.length > 0 && (
-                      <div className="mb-3">
-                        <p className="text-xs font-semibold text-brand-ink/40 mb-1">Uncategorized within {parent.name}</p>
+                      <div className="mb-4">
+                        <p className="text-xs font-semibold text-[#77716F] mb-1.5 uppercase tracking-wider">Uncategorized within {parent.name}</p>
                         <ProductStockTable list={directProducts} />
                       </div>
                     )}
@@ -341,10 +349,10 @@ export default function AdminInventoryPage() {
                     {childGroups.map(({ category, products: childProducts }) => {
                       const childStock = childProducts.reduce((s, p) => s + productStock(p), 0);
                       return (
-                        <div key={category._id} className="mb-4">
-                          <div className="flex items-center justify-between mb-1">
-                            <p className="text-sm font-semibold text-brand-ink/70">{category.name}</p>
-                            <p className="text-xs text-brand-ink/40">
+                        <div key={category._id} className="mb-4 last:mb-0">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <p className="text-sm font-semibold text-[#172333]">{category.name}</p>
+                            <p className="text-xs text-[#77716F]">
                               {childProducts.length} products &middot; {childStock} units in stock
                             </p>
                           </div>

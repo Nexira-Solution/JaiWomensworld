@@ -2,158 +2,221 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600;700&display=swap');
+
 :root {
-  /* Fonts (--font-display and --font-body are set by next/font in layout.js) */
+  /* Official JAI WOMENS WORLD Brand Palette */
+  --brand-bg: #F5F0E9;            /* Primary Background: Ivory */
+  --brand-bg-white: #FFFFFF;      /* Secondary Background: White */
+  --brand-blush: #D8B5A9;         /* Blush Pink */
+  --brand-rose: #B98270;          /* Muted Rose */
+  --brand-rose-dark: #9F6A5B;
+  --brand-navy: #172333;          /* Deep Navy */
+  --brand-navy-dark: #0F1722;
+  --brand-ink: #171717;           /* Primary Text */
+  --brand-ink-muted: #77716F;     /* Secondary Text */
+  --brand-border: #E9DFD9;        /* Border */
+  --brand-pink-soft: #F4E8E3;     /* Soft Pink Background */
+  --brand-gold: #BFA078;          /* Gold Accent */
+  --brand-gold-dark: #9E7F55;
 
-  /* Brand palette: #064E4A #C49A45 #FFFDF5 #172A29 #E7DCC5 */
-  --brand-teal: #064E4A;          /* primary */
-  --brand-teal-dark: #043B38;     /* primary hover (darker shade of teal) */
-  --brand-gold: #C49A45;          /* accent */
-  --brand-gold-dark: #A67F30;     /* accent hover / text-safe gold (darker shade) */
-  --brand-cream: #FFFDF5;         /* page background */
-  --brand-sand: #E7DCC5;          /* borders, soft fills */
-  --brand-sand-light: #F5EFE0;    /* wash fill (light tint of sand) */
-  --brand-ink: #172A29;           /* text */
+  /* Aliases for compatibility */
+  --brand-teal: #172333;
+  --brand-teal-dark: #0F1722;
+  --brand-cream: #F5F0E9;
+  --brand-sand: #E9DFD9;
+  --brand-sand-light: #F4E8E3;
+  --brand-peach: #B98270;
+  --brand-peach-dark: #9F6A5B;
+  --brand-peach-light: #F4E8E3;
 
-  --brand-border: var(--brand-sand);
-
-  /* Legacy aliases: existing var(--brand-peach*) references now resolve to the new accent */
-  --brand-peach: var(--brand-gold);
-  --brand-peach-dark: var(--brand-gold-dark);
-  --brand-peach-light: var(--brand-sand-light);
+  /* Font variables */
+  --font-display: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  --font-body: 'Outfit', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 html {
   scroll-behavior: smooth;
+  background-color: var(--brand-bg);
 }
 
 body {
-  background: var(--brand-cream);
+  background-color: var(--brand-bg);
   color: var(--brand-ink);
+  font-family: var(--font-body);
 }
 
 * {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Scrollbar: gold thumb on cream track */
+/* Custom boutique scrollbar */
 ::-webkit-scrollbar {
   height: 6px;
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--brand-cream);
+  background: var(--brand-bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: #C49A4599;
-  border-radius: 10px;
+  background: #D8B5A9;
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--brand-gold);
+  background: #B98270;
 }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Primary button: solid deep teal, flat minimalist radius */
+/* Primary Button — Deep Navy */
 .btn-primary {
-  background: var(--brand-teal);
-  color: var(--brand-cream);
+  background: var(--brand-navy);
+  color: #FFFFFF;
   font-weight: 500;
   border-radius: 4px;
-  padding: 0.7rem 1.6rem;
-  border: none;
+  padding: 0.75rem 1.75rem;
+  border: 1px solid var(--brand-navy);
   font-family: var(--font-body);
-  transition: background 0.15s ease;
+  transition: all 0.2s ease;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.05em;
 }
 .btn-primary:hover {
-  background: var(--brand-teal-dark);
+  background: var(--brand-rose);
+  border-color: var(--brand-rose);
+  color: #FFFFFF;
 }
 .btn-primary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Secondary button: kept as an alias so existing btn-secondary references still resolve */
+/* Secondary Button — Soft Ivory / Border */
 .btn-secondary {
-  background: var(--brand-cream);
-  color: var(--brand-ink);
+  background: #FFFFFF;
+  color: var(--brand-navy);
   font-weight: 500;
   border-radius: 4px;
-  padding: 0.7rem 1.6rem;
+  padding: 0.75rem 1.75rem;
   border: 1px solid var(--brand-border);
   font-family: var(--font-body);
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: all 0.2s ease;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .btn-secondary:hover {
-  background: var(--brand-sand-light);
-  border-color: var(--brand-gold);
+  background: var(--brand-pink-soft);
+  border-color: var(--brand-blush);
+  color: var(--brand-navy);
 }
 
-/* Outline button: teal border, flips to solid teal on hover */
+/* Outline Button */
 .btn-outline {
-  border: 1px solid var(--brand-teal);
-  color: var(--brand-teal);
+  border: 1px solid var(--brand-navy);
+  color: var(--brand-navy);
   font-weight: 500;
   border-radius: 4px;
-  padding: 0.65rem 1.5rem;
-  background: var(--brand-cream);
+  padding: 0.7rem 1.6rem;
+  background: transparent;
   font-family: var(--font-body);
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: all 0.2s ease;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .btn-outline:hover {
-  background: var(--brand-teal);
-  color: var(--brand-cream);
+  background: var(--brand-navy);
+  color: #FFFFFF;
 }
 
-/* Soft secondary button (sand-wash fill) */
-.btn-gold {
-  background: var(--brand-sand-light);
-  color: var(--brand-teal);
-  font-weight: 600;
+/* Rose Accent Button */
+.btn-rose {
+  background: var(--brand-rose);
+  color: #FFFFFF;
+  font-weight: 500;
   border-radius: 4px;
-  padding: 0.7rem 1.6rem;
-  border: 1px solid var(--brand-border);
+  padding: 0.75rem 1.75rem;
+  border: 1px solid var(--brand-rose);
   font-family: var(--font-body);
-  transition: background 0.15s ease;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.btn-rose:hover {
+  background: var(--brand-rose-dark);
+}
+
+/* Gold Accent Button */
+.btn-gold {
+  background: var(--brand-gold);
+  color: #FFFFFF;
+  font-weight: 500;
+  border-radius: 4px;
+  padding: 0.75rem 1.75rem;
+  border: 1px solid var(--brand-gold);
+  font-family: var(--font-body);
+  transition: all 0.2s ease;
   cursor: pointer;
 }
 .btn-gold:hover {
-  background: var(--brand-sand);
+  background: var(--brand-gold-dark);
 }
 
-/* Section title */
+/* Typography Helpers */
+.font-display {
+  font-family: var(--font-display);
+}
+.font-body {
+  font-family: var(--font-body);
+}
+
+.section-eyebrow {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--brand-rose);
+}
+
 .section-title {
   font-family: var(--font-display);
-  color: var(--brand-teal);
-  font-weight: 600;
+  color: var(--brand-navy);
+  font-weight: 500;
   letter-spacing: -0.01em;
 }
 
 /* Card */
 .card-soft {
-  background: var(--brand-cream);
+  background: #FFFFFF;
   border-radius: 6px;
-  border: 1px solid var(--brand-sand-light);
-  box-shadow: none;
-  transition: border-color 0.15s ease;
+  border: 1px solid var(--brand-border);
+  box-shadow: 0 4px 20px -2px rgba(23, 35, 51, 0.04);
+  transition: all 0.25s ease;
 }
 .card-soft:hover {
-  border-color: var(--brand-border);
+  border-color: var(--brand-blush);
+  box-shadow: 0 10px 30px -10px rgba(23, 35, 51, 0.08);
 }
 
-/* Subtle divider: use as <div class="gold-divider"> */
+/* Elegant Dividers */
 .gold-divider {
   height: 1px;
-  background: var(--brand-sand);
-  margin: 0.75rem 0;
+  background: var(--brand-border);
+  margin: 1rem 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; transition: none !important; }
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 .scrollbar-hide::-webkit-scrollbar { display: none; }

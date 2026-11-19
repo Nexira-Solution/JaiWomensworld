@@ -7,22 +7,27 @@ import ColorPackSelector from '@/components/ColorPackSelector';
 import ComboImageGallery from '@/components/ComboImageGallery';
 import { Package, Tag, CheckCircle2, RotateCcw, Shield } from 'lucide-react';
 
-// Theme: #064E4A (deep teal), #C49A45 (gold), #FFFDF5 (cream), #172A29 (dark teal), #E7DCC5 (sand)
-const INK = '#172A29';          // primary text
-const INK_SOFT = '#6B7F7C';     // muted text (derived teal-gray)
-const PEACH = '#C49A45';        // accent (gold) - name kept so other components don't break
-const PEACH_LIGHT = '#E7DCC5';  // accent background (sand)
-const LINE = '#E7DCC5';         // borders (sand)
-const PAPER = '#FFFDF5';        // page background (cream)
-const SAGE = '#064E4A';         // savings / success (deep teal)
-const FONT_SERIF = "Georgia, 'Times New Roman', serif";
+// JAI WOMENS WORLD Brand Palette
+const INK = '#171717';
+const INK_SOFT = '#77716F';
+const PEACH = '#BFA078';
+const PEACH_LIGHT = '#F4E8E3';
+const LINE = '#E9DFD9';
+const PAPER = '#F5F0E9';
+const SAGE = '#172333';
+const FONT_SERIF = "var(--font-display), 'Cormorant Garamond', Georgia, serif";
 
 export default async function ComboPage({ params }) {
-  await dbConnect();
-  const combo = await Combo.findOne({ slug: params.slug, isActive: true })
-    .populate('products.product', 'name slug variants')
-    .populate('baseProduct', 'name slug variants')
-    .lean();
+  let combo = null;
+  try {
+    await dbConnect();
+    combo = await Combo.findOne({ slug: params.slug, isActive: true })
+      .populate('products.product', 'name slug variants')
+      .populate('baseProduct', 'name slug variants')
+      .lean();
+  } catch (err) {
+    console.error('Error fetching combo:', err?.message || err);
+  }
 
   if (!combo) {
     return <div className="max-w-3xl mx-auto px-4 py-20 text-center text-sm" style={{ color: INK_SOFT }}>Combo not found.</div>;

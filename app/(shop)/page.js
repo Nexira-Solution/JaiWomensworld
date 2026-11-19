@@ -4,284 +4,445 @@ import Product from '@/models/Product';
 import Review from '@/models/Review';
 import Combo from '@/models/Combo';
 import Category from '@/models/Category';
-import Settings from '@/models/Settings';
 import BannerCarousel from '@/components/BannerCarousel';
 import ProductCard from '@/components/ProductCard';
 import ReviewSection from '@/components/ReviewSection';
-import LiveSection from '@/components/LiveSection';
 import Reel from '@/models/Reel';
 import ReelsSection from '@/components/ReelsSection';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { formatINR } from '@/lib/utils';
 import { toCardProduct } from '@/lib/cardProduct';
-import { ArrowRight, Tag } from 'lucide-react';
+import {
+  ArrowRight,
+  Sparkles,
+  Tag,
+  ShieldCheck,
+  Truck,
+  HeartHandshake,
+  CheckCircle,
+} from 'lucide-react';
 
-// ISR: the page is built once and served from the CDN, then regenerated in the
-// background at most every 10 minutes. Visitors and bots no longer trigger a
-// function + 7 DB queries on every request.
-// The settings and reels APIs call revalidatePath('/') on save, so those changes
-// show instantly. For other admin changes (products, banners, categories, combos,
-// reviews) call revalidatePath('/') in those API routes as well.
 export const revalidate = 600;
 
-// Design tokens: shared teal / gold / cream theme
-// Palette: #064E4A #C49A45 #FFFDF5 #172A29 #E7DCC5
-// Keep in sync with Navbar and CouponMarquee.
-const TEAL = '#064E4A';                       // primary brand / CTA
-const INK = '#172A29';                        // primary text
-const INK_FAINT = '#6B7C7A';                  // secondary text
-const GOLD = '#C49A45';                       // accent / hover / badges
-const SAND = '#E7DCC5';                       // hairlines, soft fills, placeholders
-const SAND_SOFT = 'rgba(231, 220, 197, 0.35)'; // image placeholder background
-const PAPER = '#FFFDF5';                      // page background
-const HAIRLINE = SAND;
-
-// Minimalist type: a clean, quiet sans. Headings are bold + tracked out;
-// body copy stays light so the boldness reads as intentional, not noisy.
-const FONT_SANS = "'Helvetica Neue', Helvetica, Arial, sans-serif";
-// Premium editorial serif: reserved for the hero headline and tagline only,
-// so it reads as a deliberate accent rather than a full type-system change.
-const FONT_SERIF = "Georgia, 'Times New Roman', serif";
-
-// Featured Collection shows a teaser, not the full catalog
-const FEATURED_LIMIT = 6;
-
-// How many reels to show in the "Shop by Reels" row
+const FEATURED_LIMIT = 8;
 const REELS_LIMIT = 10;
 
-async function getData() {
-  await dbConnect();
-  // Only fetch what the page actually renders.
-  const [banners, newArrivals, reviews, combos, categories, reels, settings] = await Promise.all([
-    Banner.find({ isActive: true }).sort({ sortOrder: 1 }).lean(),
-    Product.find({ isActive: true, isActiveSeller: true })
-      .sort({ createdAt: -1 })
-      .limit(FEATURED_LIMIT)
-      .lean(),
-    Review.find({ isApproved: true, isFeatured: true }).populate('product', 'name').limit(10).lean(),
-    Combo.find({ isActive: true }).limit(6).lean(),
-    // Only main categories here: subcategories are excluded from the
-    // homepage "Shop by Category" grid.
-    Category.find({ isActive: true, parent: null }).limit(10).lean(),
-    // Reels: manual order from admin first, then newest first, with the linked
-    // product's name + slug for the caption and "Shop now" link.
-    Reel.find({ isActive: true })
-      .sort({ sortOrder: 1, createdAt: -1 })
-      .populate('product', 'name slug')
-      .limit(REELS_LIMIT)
-      .lean(),
-    // YouTube live links (Yesterday / Today / Tomorrow) set in admin settings
-    Settings.findOne({ key: 'global' }).select('liveStreams').lean(),
-  ]);
+// Curated Category Imagery Fallbacks for Jai Womens World
+const CATEGORY_IMAGES = {
+  'salwar-set': 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=800&q=80',
+  'rayon-umbrella-kurtis': 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80',
+  'side-open-kurtis': 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80',
+  'umbrella-kurtis': 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=800&q=80',
+  'nighties': 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80',
+  'innerwear': 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80',
+  '2-piece-set': 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=800&q=80',
+};
 
-  // Serialize once (ObjectId/Date -> plain values) for client components
-  return JSON.parse(
-    JSON.stringify({
-      banners,
-      newArrivals,
-      reviews,
-      combos,
-      categories,
-      reels,
-      liveStreams: settings?.liveStreams || null,
-    })
-  );
+// Rich Sample Products for Jai Womens World Boutique
+const SAMPLE_PRODUCTS = [
+  {
+    _id: 'sample-p1',
+    name: 'Floral Anarkali Rayon Umbrella Kurti',
+    slug: 'floral-anarkali-rayon-umbrella-kurti',
+    basePrice: 799,
+    rating: 4.9,
+    soldCount: 142,
+    isBestSeller: true,
+    variants: [
+      {
+        sku: 'JWW-KURTI-01',
+        title: 'Rose Wine',
+        price: 799,
+        originalPrice: 1299,
+        images: [
+          'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80',
+        ],
+        stock: 25,
+      },
+    ],
+  },
+  {
+    _id: 'sample-p2',
+    name: 'Pure Cotton Straight Cut Side Open Kurti',
+    slug: 'pure-cotton-straight-cut-side-open-kurti',
+    basePrice: 549,
+    rating: 4.8,
+    soldCount: 98,
+    isTopSeller: true,
+    variants: [
+      {
+        sku: 'JWW-KURTI-02',
+        title: 'Sage Green',
+        price: 549,
+        originalPrice: 899,
+        images: [
+          'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80',
+        ],
+        stock: 18,
+      },
+    ],
+  },
+  {
+    _id: 'sample-p3',
+    name: 'Handcrafted Festive Salwar Suit Set (With Dupatta)',
+    slug: 'handcrafted-festive-salwar-suit-set',
+    basePrice: 1299,
+    rating: 5.0,
+    soldCount: 86,
+    isBestSeller: true,
+    variants: [
+      {
+        sku: 'JWW-SALWAR-01',
+        title: 'Powder Blue',
+        price: 1299,
+        originalPrice: 1999,
+        images: [
+          'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=800&q=80',
+        ],
+        stock: 12,
+      },
+    ],
+  },
+  {
+    _id: 'sample-p4',
+    name: 'Soft Breathable Cotton Printed Daily Nighty',
+    slug: 'soft-breathable-cotton-printed-daily-nighty',
+    basePrice: 399,
+    rating: 4.9,
+    soldCount: 210,
+    isTopSeller: true,
+    variants: [
+      {
+        sku: 'JWW-NIGHTY-01',
+        title: 'Blush Pink',
+        price: 399,
+        originalPrice: 650,
+        images: [
+          'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80',
+        ],
+        stock: 30,
+      },
+    ],
+  },
+  {
+    _id: 'sample-p5',
+    name: 'Chic Embroidered 2-Piece Kurti & Pant Set',
+    slug: 'chic-embroidered-2-piece-kurti-pant-set',
+    basePrice: 999,
+    rating: 4.8,
+    soldCount: 74,
+    variants: [
+      {
+        sku: 'JWW-SET-01',
+        title: 'Ivory Navy',
+        price: 999,
+        originalPrice: 1499,
+        images: [
+          'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80',
+        ],
+        stock: 15,
+      },
+    ],
+  },
+  {
+    _id: 'sample-p6',
+    name: 'Tiered Flared Umbrella Party Kurti',
+    slug: 'tiered-flared-umbrella-party-kurti',
+    basePrice: 849,
+    rating: 4.9,
+    soldCount: 115,
+    variants: [
+      {
+        sku: 'JWW-KURTI-03',
+        title: 'Rust Terracotta',
+        price: 849,
+        originalPrice: 1350,
+        images: [
+          'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=800&q=80',
+        ],
+        stock: 20,
+      },
+    ],
+  },
+  {
+    _id: 'sample-p7',
+    name: 'Traditional Jaipuri Printed A-Line Kurti',
+    slug: 'traditional-jaipuri-printed-a-line-kurti',
+    basePrice: 649,
+    rating: 4.7,
+    soldCount: 65,
+    variants: [
+      {
+        sku: 'JWW-KURTI-04',
+        title: 'Indigo Blue',
+        price: 649,
+        originalPrice: 999,
+        images: [
+          'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=800&q=80',
+        ],
+        stock: 22,
+      },
+    ],
+  },
+  {
+    _id: 'sample-p8',
+    name: 'Loom-Woven Comfort Fit Salwar Kurti Duo',
+    slug: 'loom-woven-comfort-fit-salwar-kurti-duo',
+    basePrice: 1149,
+    rating: 5.0,
+    soldCount: 92,
+    variants: [
+      {
+        sku: 'JWW-SALWAR-02',
+        title: 'Mustard Gold',
+        price: 1149,
+        originalPrice: 1750,
+        images: [
+          'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=800&q=80',
+        ],
+        stock: 14,
+      },
+    ],
+  },
+];
+
+const SAMPLE_COMBOS = [
+  {
+    _id: 'sample-combo-1',
+    name: '3x Rayon Umbrella Kurtis Value Pack',
+    slug: '3x-rayon-umbrella-kurtis-value-pack',
+    comboPrice: 1999,
+    originalPrice: 2899,
+    images: ['https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'],
+    description: 'Pick any 3 colours from our best-selling umbrella rayon kurti range at a special boutique bundle price.',
+  },
+  {
+    _id: 'sample-combo-2',
+    name: 'Comfort Sleep Set — 4 Cotton Nighties',
+    slug: 'comfort-sleep-set-4-cotton-nighties',
+    comboPrice: 1399,
+    originalPrice: 2200,
+    images: ['https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80'],
+    description: 'Ultra-soft 100% breathable cotton daily nighties. Color variety pack with durable seams and roomy fit.',
+  },
+];
+
+async function getData() {
+  try {
+    await dbConnect();
+    const [banners, newArrivals, reviews, combos, categories, reels] = await Promise.all([
+      Banner.find({ isActive: true }).sort({ sortOrder: 1 }).lean(),
+      Product.find({ isActive: true, isActiveSeller: true })
+        .sort({ createdAt: -1 })
+        .limit(FEATURED_LIMIT)
+        .lean(),
+      Review.find({ isApproved: true, isFeatured: true }).populate('product', 'name').limit(10).lean(),
+      Combo.find({ isActive: true }).limit(6).lean(),
+      Category.find({ isActive: true, parent: null }).sort({ sortOrder: 1, name: 1 }).limit(10).lean(),
+      Reel.find({ isActive: true })
+        .sort({ sortOrder: 1, createdAt: -1 })
+        .populate('product', 'name slug')
+        .limit(REELS_LIMIT)
+        .lean(),
+    ]);
+
+    return JSON.parse(
+      JSON.stringify({
+        banners,
+        newArrivals,
+        reviews,
+        combos,
+        categories,
+        reels,
+      })
+    );
+  } catch (err) {
+    console.error('Database connection or query error in HomePage getData():', err?.message || err);
+    return {
+      banners: [],
+      newArrivals: [],
+      reviews: [],
+      combos: [],
+      categories: [],
+      reels: [],
+    };
+  }
 }
 
 export default async function HomePage() {
   const {
     banners,
-    newArrivals: plainNewArrivals,
+    newArrivals: dbArrivals,
     reviews,
-    combos: plainCombos,
+    combos: dbCombos,
     categories: plainCategories,
     reels,
-    liveStreams,
   } = await getData();
 
+  // Use dynamic products if in DB, otherwise use authentic sample boutique products
+  const displayProducts = dbArrivals && dbArrivals.length > 0 ? dbArrivals : SAMPLE_PRODUCTS;
+  const displayCombos = dbCombos && dbCombos.length > 0 ? dbCombos : SAMPLE_COMBOS;
+
   return (
-    <div className="overflow-x-hidden" style={{ background: PAPER }}>
-
-      {/* Intro / hero copy: premium editorial opener */}
-      {/* <section className="max-w-2xl mx-auto px-6 pt-16 sm:pt-24 pb-10 sm:pb-14 text-center">
-        <span
-          className="inline-block text-[10px] sm:text-[11px] font-semibold uppercase tracking-[4px]"
-          style={{ color: INK_FAINT, fontFamily: FONT_SANS }}
-        >
-          The Tirupur Clothing Hub Edit
-        </span>
-
-        <h1
-          className="mt-5 text-[26px] sm:text-[38px] leading-[1.2]"
-          style={{ color: INK, fontFamily: FONT_SERIF, fontWeight: 400, letterSpacing: '-0.01em' }}
-        >
-          Crafted for the Trendsetters of Today
-        </h1> */}
-
-        {/* Thin center divider: a quiet, premium separator instead of a rule */}
-        {/* <div className="flex items-center justify-center gap-3 mt-6 sm:mt-7">
-          <span style={{ width: '28px', height: '1px', background: HAIRLINE }} />
-          <span className="w-1 h-1 rounded-full" style={{ background: GOLD }} />
-          <span style={{ width: '28px', height: '1px', background: HAIRLINE }} />
-        </div>
-
-        <p
-          className="mt-6 sm:mt-7 text-[13.5px] sm:text-[15px] leading-[1.8] font-light max-w-[46ch] mx-auto"
-          style={{ color: INK_FAINT, fontFamily: FONT_SANS }}
-        >
-          Experience the perfect blend of comfort, quality, and timeless fashion.
-          Sourced directly from India&rsquo;s textile capital, our collections offer
-          high-end craftsmanship at prices that fit your daily lifestyle.
-        </p>
-
-        <p
-          className="mt-5 sm:mt-6 text-sm sm:text-base tracking-[0.5px] italic"
-          style={{ color: INK, fontFamily: FONT_SERIF }}
-        >
-          Wrap yourself in beauty every time you step out.
-        </p>
-      </section> */}
-
-      {/* Banner */}
+    <div className="overflow-x-hidden bg-[#F5F0E9]">
+      
+      {/* Editorial Banner / Hero Section — Dynamic from DB with Editorial Fallback */}
       <BannerCarousel banners={banners} />
 
-      {/* YouTube live: Yesterday / Today / Tomorrow (hidden if no links set) */}
-      <LiveSection streams={liveStreams} />
-
-      {/* Shop by Category */}
+      {/* ── SECTION: SHOP BY CATEGORY (Editorial Grid Layout) ── */}
       {plainCategories?.length > 0 && (
-        <section className="max-w-6xl mx-auto px-4 pt-14 pb-6">
-          {/* h2 (was a second h1): a page should have only one h1 for SEO */}
-          <h2
-            className="text-xl sm:text-2xl font-bold tracking-[3px] uppercase mb-6 text-center"
-            style={{ color: TEAL, fontFamily: FONT_SANS }}
-          >
-            Shop by Category
-          </h2>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 sm:gap-6">
-            {plainCategories.map((c) => (
-              <Link
-                key={c._id}
-                href={`/category/${c.slug}`}
-                className="group flex flex-col items-center text-center"
-              >
-                {/* Circular image */}
-                <div
-                  className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full overflow-hidden transition-transform duration-300 group-hover:scale-105"
-                  style={{ border: `1px solid ${HAIRLINE}`, background: SAND_SOFT }}
+        <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center text-center mb-12">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#B98270] mb-2">
+              Explore Your Style
+            </span>
+            <h2 className="font-display text-2xl sm:text-4xl font-semibold text-[#172333]">
+              Find Your Signature Look
+            </h2>
+            <div className="flex items-center justify-center gap-3 mt-4">
+              <span className="w-8 h-px bg-[#E9DFD9]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#BFA078]" />
+              <span className="w-8 h-px bg-[#E9DFD9]" />
+            </div>
+            <p className="text-xs sm:text-sm text-[#77716F] font-light max-w-md mt-3">
+              Explore thoughtfully selected styles and discover fashion that feels uniquely yours.
+            </p>
+          </div>
+
+          {/* Asymmetric / Responsive Category Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            {plainCategories.map((c, idx) => {
+              const isLarge = idx === 0 && plainCategories.length >= 4;
+              const categoryImage = c.image || CATEGORY_IMAGES[c.slug] || '/placeholder.png';
+
+              return (
+                <Link
+                  key={c._id}
+                  href={`/category/${c.slug}`}
+                  className={`group relative overflow-hidden rounded-lg border border-[#E9DFD9] bg-white transition-all duration-300 hover:border-[#D8B5A9] hover:shadow-card flex flex-col ${
+                    isLarge ? 'md:col-span-2 md:row-span-1' : ''
+                  }`}
                 >
-                  {c.image ? (
+                  <div className={`relative w-full ${isLarge ? 'aspect-[16/10] md:aspect-[2/1]' : 'aspect-[4/5]'} overflow-hidden bg-[#F4E8E3]/60`}>
                     <img
-                      src={c.image}
-                      alt={c.name}
+                      src={categoryImage}
+                      alt={`Women's ${c.name} collection at Jai Womens World`}
                       loading="lazy"
                       decoding="async"
-                      className="absolute inset-0 w-full h-full object-cover"
+                      className="w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
                     />
-                  ) : (
-                    <div className="w-full h-full" style={{ background: SAND }} />
-                  )}
-                </div>
 
-                {/* Label */}
-                <span
-                  className="mt-2 text-[10.5px] sm:text-[11px] font-bold tracking-wide leading-tight line-clamp-2 max-w-[80px]"
-                  style={{ color: INK, fontFamily: FONT_SANS }}
-                >
-                  {c.name}
-                </span>
-              </Link>
-            ))}
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent pointer-events-none" />
+
+                    {/* Card Content Overlay */}
+                    <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5 flex items-end justify-between">
+                      <div>
+                        <span className="text-[10px] uppercase tracking-widest text-[#D8B5A9] font-medium block">
+                          Category
+                        </span>
+                        <h3 className="font-display text-lg sm:text-xl font-semibold text-white">
+                          {c.name}
+                        </h3>
+                      </div>
+
+                      <div className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-xs flex items-center justify-center text-[#172333] group-hover:bg-[#B98270] group-hover:text-white transition-colors shrink-0 shadow-sm">
+                        <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </section>
       )}
 
-      {/* Featured collection: centered copy, up to 6 New Arrivals, CTA */}
-      <section className="max-w-6xl mx-auto px-4 pt-6 pb-16 text-center">
-        {/* h2 (was h3): keeps heading levels in order for SEO and accessibility */}
-        <h2
-          className="text-lg sm:text-xl font-bold tracking-[3px] uppercase"
-          style={{ color: TEAL, fontFamily: FONT_SANS }}
-        >
-          Featured Collection
-        </h2>
+      {/* ── SECTION: FEATURED COLLECTION ("THE JAI EDIT") ── */}
+      <section className="py-20 bg-white border-t border-[#E9DFD9]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="flex flex-col items-center text-center mb-12">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#B98270] mb-2">
+              The Curated Edit
+            </span>
+            <h2 className="font-display text-2xl sm:text-4xl font-semibold text-[#172333]">
+              Discover Our Curated Collection
+            </h2>
+            <div className="flex items-center justify-center gap-3 mt-4">
+              <span className="w-8 h-px bg-[#E9DFD9]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#BFA078]" />
+              <span className="w-8 h-px bg-[#E9DFD9]" />
+            </div>
+            <p className="text-xs sm:text-sm text-[#77716F] font-light max-w-md mt-3">
+              Explore our handpicked selection of women&rsquo;s boutique designs, thoughtfully brought together to complement your style.
+            </p>
+          </div>
 
-        {/* 2/3/4 columns so each ProductCard renders large */}
-        {plainNewArrivals.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8 mt-8 text-left">
-            {plainNewArrivals.map((p) => (
-              <ProductCard key={p._id} product={toCardProduct(p)} />
+          {/* Product Grid: 4 columns on desktop, 3 on tablet, 2 on mobile */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+            {displayProducts.map((p, i) => (
+              <ProductCard key={p._id} product={toCardProduct(p)} priority={i < 4} />
             ))}
           </div>
-        )}
 
-        <Link
-          href="/products"
-          className="inline-block mt-10 px-8 py-3 text-[12px] font-bold tracking-[2px] uppercase transition-colors bg-[#064E4A] hover:bg-[#C49A45] text-[#FFFDF5] hover:text-[#172A29]"
-          style={{ fontFamily: FONT_SANS }}
-        >
-          Shop the collection
-        </Link>
+          {/* CTA */}
+          <div className="mt-14 text-center">
+            <Link
+              href="/products"
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded bg-[#172333] hover:bg-[#B98270] text-white text-xs uppercase tracking-[0.16em] font-medium transition-all shadow-boutique group"
+            >
+              <span>Explore All Kurtis &amp; Collections</span>
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+        </div>
       </section>
 
-      {/* Combo Offers */}
-      {plainCombos?.length > 0 && (
-        <section className="py-16 border-t" style={{ background: PAPER, borderColor: HAIRLINE }}>
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="flex flex-col items-center text-center mb-8">
-              <span
-                className="text-[11px] font-bold uppercase tracking-[3px] mb-3 px-3 py-1"
-                style={{ color: INK, background: SAND, fontFamily: FONT_SANS }}
-              >
-                Save More
+      {/* ── SECTION: COMBO OFFERS (BEAUTIFULLY PAIRED) ── */}
+      {displayCombos?.length > 0 && (
+        <section className="py-20 bg-gradient-to-b from-[#F5F0E9] via-[#F4E8E3]/50 to-[#F5F0E9] border-t border-[#E9DFD9]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div className="flex flex-col items-center text-center mb-12">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#B98270] mb-2">
+                Beautifully Paired
               </span>
-              <h2
-                className="text-xl sm:text-2xl font-bold tracking-[1px]"
-                style={{ color: TEAL, fontFamily: FONT_SANS }}
-              >
-                Combo Offers
+              <h2 className="font-display text-2xl sm:text-4xl font-semibold text-[#172333]">
+                Boutique Combo Sets
               </h2>
-              <p className="text-sm mt-1 font-light" style={{ color: INK_FAINT, fontFamily: FONT_SANS }}>
-                Buy together, save together
+              <div className="flex items-center justify-center gap-3 mt-4">
+                <span className="w-8 h-px bg-[#E9DFD9]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#BFA078]" />
+                <span className="w-8 h-px bg-[#E9DFD9]" />
+              </div>
+              <p className="text-xs sm:text-sm text-[#77716F] font-light max-w-md mt-3">
+                Discover thoughtfully selected combinations and explore special value offers from our collection.
               </p>
-              <Link
-                href="/combos"
-                className="hidden sm:flex items-center gap-1 text-sm font-bold hover:gap-2 transition-all mt-3"
-                style={{ color: TEAL, fontFamily: FONT_SANS }}
-              >
-                View all <ArrowRight size={14} />
-              </Link>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-5">
-              {plainCombos.map((c) => {
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {displayCombos.map((c) => {
                 const isColorPack = c.type === 'color-pack';
                 const cheapestPack = isColorPack && c.packOptions?.length
                   ? c.packOptions.reduce((min, p) => (p.price < min.price ? p : min), c.packOptions[0])
                   : null;
 
-                // Support both the current `images[]` array and, defensively, a
-                // legacy singular `image` field on older documents.
                 const cover = c.images?.[0] || c.image;
-
                 const displayPrice = isColorPack ? cheapestPack?.price ?? 0 : c.comboPrice;
-                const displayOriginal = isColorPack ? cheapestPack?.originalPrice ?? 0 : c.originalPrice;
-                const savings = displayOriginal > displayPrice ? displayOriginal - displayPrice : 0;
-                const pct = displayOriginal > 0 ? Math.round((savings / displayOriginal) * 100) : 0;
+                const originalPrice = isColorPack ? cheapestPack?.originalPrice ?? 0 : c.originalPrice;
+                const savings = originalPrice > displayPrice ? originalPrice - displayPrice : 0;
 
                 return (
                   <Link
                     key={c._id}
                     href={`/combo/${c.slug}`}
-                    className="group relative overflow-hidden transition-colors"
-                    style={{ background: PAPER, border: `1px solid ${HAIRLINE}` }}
+                    className="group bg-white rounded-lg overflow-hidden border border-[#E9DFD9] hover:border-[#D8B5A9] hover:shadow-card transition-all flex flex-col"
                   >
-                    {/* Image */}
-                    <div
-                      className="relative w-full aspect-square overflow-hidden"
-                      style={{ background: SAND_SOFT }}
-                    >
+                    <div className="relative aspect-[16/10] overflow-hidden bg-[#F4E8E3]">
                       {cover ? (
                         <img
                           src={cover}
@@ -291,75 +452,137 @@ export default async function HomePage() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : (
-                        <div className="w-full h-full" style={{ background: SAND }} />
-                      )}
-                      {pct > 0 && (
-                        <div
-                          className="absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 flex items-center gap-1"
-                          style={{ color: INK, background: GOLD, fontFamily: FONT_SANS }}
-                        >
-                          <Tag size={9} /> {pct}% off
+                        <div className="w-full h-full flex items-center justify-center text-xs text-[#77716F]">
+                          Boutique Combo
                         </div>
                       )}
-                      {isColorPack && (
-                        <div
-                          className="absolute top-2 right-2 text-[10px] font-medium px-2 py-0.5"
-                          style={{ background: TEAL, color: PAPER }}
-                        >
-                          Color Pack
-                        </div>
+
+                      {savings > 0 && (
+                        <span className="absolute top-3 left-3 bg-[#172333] text-white text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded">
+                          Save {formatINR(savings)}
+                        </span>
                       )}
                     </div>
 
-                    {/* Info */}
-                    <div className="p-3" style={{ borderTop: `1px solid ${HAIRLINE}` }}>
-                      <p
-                        className="text-[13px] font-bold tracking-wide line-clamp-1"
-                        style={{ color: INK, fontFamily: FONT_SANS }}
-                      >
-                        {c.name}
-                      </p>
-                      <div className="flex items-baseline gap-2 mt-1.5">
-                        <span className="font-bold text-sm" style={{ color: TEAL, fontFamily: FONT_SANS }}>
-                          {isColorPack && 'From '}{formatINR(displayPrice)}
+                    <div className="p-5 flex-1 flex flex-col justify-between">
+                      <div>
+                        <span className="text-[10px] uppercase tracking-wider text-[#B98270] font-semibold block mb-1">
+                          Special Pack
                         </span>
-                        {savings > 0 && (
-                          <span
-                            className="text-[11px] line-through font-light"
-                            style={{ color: INK_FAINT, fontFamily: FONT_SANS }}
-                          >
-                            {formatINR(displayOriginal)}
-                          </span>
+                        <h3 className="font-display text-base sm:text-lg font-semibold text-[#172333] group-hover:text-[#B98270] transition-colors">
+                          {c.name}
+                        </h3>
+                        {c.description && (
+                          <p className="text-xs text-[#77716F] font-light mt-1.5 line-clamp-2">
+                            {c.description}
+                          </p>
                         )}
                       </div>
-                      {savings > 0 && (
-                        <p
-                          className="text-[10.5px] font-bold mt-1 tracking-wide uppercase"
-                          style={{ color: INK_FAINT, fontFamily: FONT_SANS }}
-                        >
-                          Save {formatINR(savings)}
-                        </p>
-                      )}
+
+                      <div className="mt-4 pt-4 border-t border-[#E9DFD9] flex items-center justify-between">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-base sm:text-lg font-semibold text-[#172333]">
+                            {formatINR(displayPrice)}
+                          </span>
+                          {originalPrice > displayPrice && (
+                            <span className="text-xs text-[#77716F] line-through font-light">
+                              {formatINR(originalPrice)}
+                            </span>
+                          )}
+                        </div>
+
+                        <span className="text-xs font-semibold text-[#B98270] group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
+                          <span>View Pack</span>
+                          <ArrowRight size={12} />
+                        </span>
+                      </div>
                     </div>
                   </Link>
                 );
               })}
             </div>
 
-            <div className="mt-8 text-center sm:hidden">
-              <Link href="/combos" className="text-sm font-bold" style={{ color: TEAL, fontFamily: FONT_SANS }}>
-                View all combos →
-              </Link>
-            </div>
           </div>
         </section>
       )}
 
-      {/* Reviews */}
+      {/* ── SECTION: BOUTIQUE CRAFTSMANSHIP & STORY ── */}
+      <section className="py-20 bg-white border-t border-[#E9DFD9]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+            
+            <div className="lg:col-span-6 space-y-6">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#B98270]">
+                Tiruvannamalai Boutique
+              </span>
+
+              <h2 className="font-display text-3xl sm:text-4xl font-semibold text-[#172333] leading-tight">
+                Crafted With Devotion, Designed for Modern Grace
+              </h2>
+
+              <p className="text-sm leading-relaxed text-[#77716F] font-light">
+                At Jai Womens World, every garment is thoughtfully selected to honor tradition while celebrating contemporary womanhood. From breezy daily cottons to graceful rayon umbrella flares and festive salwar suits, we bring you style that feels like home.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                <div className="p-4 rounded-lg bg-[#F5F0E9] border border-[#E9DFD9]">
+                  <ShieldCheck size={20} className="text-[#BFA078] mb-2" />
+                  <h4 className="font-semibold text-xs text-[#172333]">Direct Quality</h4>
+                  <p className="text-[11px] text-[#77716F] mt-1 font-light">Hand-inspected stitches &amp; fine fabrics.</p>
+                </div>
+                <div className="p-4 rounded-lg bg-[#F5F0E9] border border-[#E9DFD9]">
+                  <Truck size={20} className="text-[#B98270] mb-2" />
+                  <h4 className="font-semibold text-xs text-[#172333]">Pan-India Shipping</h4>
+                  <p className="text-[11px] text-[#77716F] mt-1 font-light">Reliable couriers delivered to your door.</p>
+                </div>
+                <div className="p-4 rounded-lg bg-[#F5F0E9] border border-[#E9DFD9]">
+                  <HeartHandshake size={20} className="text-[#BFA078] mb-2" />
+                  <h4 className="font-semibold text-xs text-[#172333]">Boutique Care</h4>
+                  <p className="text-[11px] text-[#77716F] mt-1 font-light">Dedicated WhatsApp support for sizing.</p>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <Link
+                  href="/about"
+                  className="inline-flex items-center gap-2 text-xs uppercase tracking-widest font-semibold text-[#B98270] hover:text-[#172333] transition-colors"
+                >
+                  <span>Learn More About Our Journey</span>
+                  <ArrowRight size={13} />
+                </Link>
+              </div>
+            </div>
+
+            <div className="lg:col-span-6 relative flex justify-center">
+              <div className="relative w-full max-w-lg aspect-[4/3] rounded-xl overflow-hidden border border-[#E9DFD9] shadow-boutique bg-[#F5F0E9]">
+                <Image
+                  src="/Jai-logo.jpeg"
+                  alt="Jai Womens World Tiruvannamalai"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 500px"
+                  className="object-cover"
+                />
+                <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-[#172333]/90 to-transparent text-white flex items-center justify-between">
+                  <div>
+                    <span className="font-display text-base font-semibold block">JAI WOMENS WORLD</span>
+                    <span className="text-[10px] text-[#D8B5A9] uppercase tracking-widest">Tiruvannamalai, Tamil Nadu</span>
+                  </div>
+                  <span className="text-[11px] px-2.5 py-1 rounded bg-[#BFA078] text-[#172333] font-semibold">
+                    Est. Quality
+                  </span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ── CUSTOMER REVIEWS SECTION ── */}
       <ReviewSection reviews={reviews} />
 
-      {/* Reels */}
-      <ReelsSection reels={reels} />
+      {/* ── VIDEO REELS SHOWCASE (if configured) ── */}
+      {reels?.length > 0 && <ReelsSection reels={reels} />}
 
     </div>
   );

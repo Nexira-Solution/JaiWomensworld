@@ -3,18 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, PackageCheck, ArrowRight, FileText } from 'lucide-react';
 import { formatINR } from '@/lib/utils';
-
-// Theme: #064E4A (deep teal), #C49A45 (gold), #FFFDF5 (cream), #172A29 (dark teal), #E7DCC5 (sand)
-const INK = '#172A29';          // primary text
-const INK_SOFT = '#6B7F7C';     // muted text (derived teal-gray)
-const PEACH = '#C49A45';        // accent (gold) - ring around the success icon
-const PEACH_WASH = '#E7DCC5';   // icon circle background (sand)
-const LINE = '#E7DCC5';         // borders (sand)
-const PAPER = '#FFFDF5';        // page background (cream)
-const SAGE = '#064E4A';         // deep teal (success icon, total, primary button)
-const FONT_SERIF = "Georgia, 'Times New Roman', serif";
 
 export default function OrderSuccessPage() {
   const { id } = useParams();
@@ -28,53 +18,58 @@ export default function OrderSuccessPage() {
 
   if (!order) {
     return (
-      <div className="max-w-xl mx-auto px-4 py-24 text-center text-sm" style={{ color: INK_SOFT }}>
-        Loading…
+      <div className="min-h-[60vh] flex items-center justify-center bg-[#F5F0E9] text-xs uppercase tracking-wider text-[#77716F]">
+        Retrieving order confirmation…
       </div>
     );
   }
 
   return (
-    <div className="max-w-xl mx-auto px-5 py-20 text-center" style={{ background: PAPER }}>
-      <div
-        className="inline-flex items-center justify-center w-16 h-16 mb-5"
-        style={{ background: PEACH_WASH, border: `1px solid ${PEACH}`, borderRadius: '50%' }}
-      >
-        <CheckCircle2 size={30} strokeWidth={1.5} style={{ color: SAGE }} />
-      </div>
+    <div className="bg-[#F5F0E9] min-h-[75vh] flex items-center justify-center py-16 px-4">
+      <div className="max-w-lg w-full bg-white rounded-xl border border-[#E9DFD9] p-8 sm:p-12 text-center shadow-card">
+        <div className="w-16 h-16 rounded-full bg-[#F4E8E3] border border-[#BFA078]/40 flex items-center justify-center mx-auto mb-6 text-[#B98270]">
+          <CheckCircle2 size={32} strokeWidth={1.75} />
+        </div>
 
-      <h1 className="text-[24px] sm:text-[28px]" style={{ fontFamily: FONT_SERIF, color: INK }}>
-        Order placed successfully
-      </h1>
+        <span className="text-[10.5px] uppercase tracking-[0.22em] font-semibold text-[#B98270] block mb-1">
+          Order Confirmed
+        </span>
 
-      <div className="mt-6 pt-6 max-w-xs mx-auto space-y-2" style={{ borderTop: `1px solid ${LINE}` }}>
-        <p className="text-sm" style={{ color: INK_SOFT }}>
-          Order Number <span style={{ color: INK }}>— {order.orderNumber}</span>
+        <h1 className="font-display text-2xl sm:text-3xl font-semibold text-[#172333]">
+          Thank You For Shopping With Us
+        </h1>
+
+        <div className="mt-6 pt-6 border-t border-[#E9DFD9] max-w-xs mx-auto space-y-2 text-xs sm:text-sm">
+          <div className="flex justify-between text-[#77716F]">
+            <span>Order Number:</span>
+            <span className="font-semibold text-[#172333]">{order.orderNumber}</span>
+          </div>
+          <div className="flex justify-between text-[#77716F]">
+            <span>Total Paid:</span>
+            <span className="font-semibold text-[#172333]">{formatINR(order.total)}</span>
+          </div>
+        </div>
+
+        <p className="text-xs text-[#77716F] mt-6 font-light leading-relaxed">
+          We have sent your confirmation and tracking details to <strong className="text-[#172333] font-medium">{order.customer?.phone}</strong>.
         </p>
-        <p className="text-sm" style={{ color: INK_SOFT }}>
-          Total <span className="font-semibold" style={{ color: SAGE }}>— {formatINR(order.total)}</span>
-        </p>
-      </div>
 
-      <p className="text-xs mt-5" style={{ color: INK_SOFT }}>
-        We&rsquo;ll send updates to {order.customer?.phone}
-      </p>
-
-      <div className="flex flex-col sm:flex-row gap-3 justify-center mt-9">
-        <Link
-          href={`/invoice/${order._id}`}
-          className="px-6 py-3 text-sm font-medium transition-opacity active:opacity-70"
-          style={{ border: `1px solid ${INK}`, color: INK, background: PAPER, borderRadius: '4px' }}
-        >
-          View Invoice
-        </Link>
-        <Link
-          href="/"
-          className="px-6 py-3 text-sm font-medium transition-opacity active:opacity-80"
-          style={{ background: SAGE, color: PAPER, borderRadius: '4px' }}
-        >
-          Continue Shopping
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8 pt-6 border-t border-[#E9DFD9]">
+          <Link
+            href={`/invoice/${order._id}`}
+            className="inline-flex items-center justify-center gap-1.5 px-6 py-3 rounded border border-[#172333] text-[#172333] text-xs font-semibold uppercase tracking-wider hover:bg-[#F5F0E9] transition-colors"
+          >
+            <FileText size={14} />
+            <span>View Invoice</span>
+          </Link>
+          <Link
+            href="/products"
+            className="inline-flex items-center justify-center gap-1.5 px-6 py-3 rounded bg-[#172333] hover:bg-[#B98270] text-white text-xs font-semibold uppercase tracking-wider transition-colors shadow-boutique"
+          >
+            <span>Continue Shopping</span>
+            <ArrowRight size={14} />
+          </Link>
+        </div>
       </div>
     </div>
   );

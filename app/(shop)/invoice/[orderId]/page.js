@@ -6,19 +6,25 @@ import { formatINR } from '@/lib/utils';
 import PrintButton from '@/components/PrintButton';
 import PrintStyles from '@/components/PrintStyles';
 
-// Theme: #064E4A (deep teal), #C49A45 (gold), #FFFDF5 (cream), #172A29 (dark teal), #E7DCC5 (sand)
-const INK = '#172A29';          // primary text
-const INK_SOFT = '#6B7F7C';     // muted text (derived teal-gray)
-const PEACH = '#C49A45';        // accent (gold) - used for the total's divider
-const LINE = '#E7DCC5';         // borders (sand)
-const PAPER = '#FFFDF5';        // page background (cream)
-const SAGE = '#064E4A';         // deep teal (labels, discount, total)
-const FONT_SERIF = "Georgia, 'Times New Roman', serif";
+// JAI WOMENS WORLD Brand Palette
+const INK = '#171717';
+const INK_SOFT = '#77716F';
+const PEACH = '#BFA078';
+const LINE = '#E9DFD9';
+const PAPER = '#FFFFFF';
+const SAGE = '#172333';
+const FONT_SERIF = "var(--font-display), 'Cormorant Garamond', Georgia, serif";
 
 export default async function InvoicePage({ params }) {
-  await dbConnect();
-  const order = await Order.findById(params.orderId).lean();
-  const settings = await Settings.findOne({ key: 'global' }).lean();
+  let order = null;
+  let settings = null;
+  try {
+    await dbConnect();
+    order = await Order.findById(params.orderId).lean();
+    settings = await Settings.findOne({ key: 'global' }).lean();
+  } catch (err) {
+    console.error('Error fetching invoice:', err?.message || err);
+  }
 
   if (!order) {
     return <div className="p-10 text-center text-sm" style={{ color: INK_SOFT }}>Invoice not found.</div>;
@@ -27,11 +33,11 @@ export default async function InvoicePage({ params }) {
   return (
     <>
       <PrintStyles />
-      <div className="print-area max-w-2xl mx-auto p-8 sm:p-10" style={{ background: PAPER, color: INK }}>
+      <div className="print-area max-w-2xl mx-auto p-8 sm:p-10 my-8 rounded-lg border border-[#E9DFD9] shadow-sm" style={{ background: PAPER, color: INK }}>
         <div className="flex justify-between items-start pb-5 mb-6" style={{ borderBottom: `1px solid ${LINE}` }}>
           <div>
-            <h1 className="text-[22px]" style={{ fontFamily: FONT_SERIF, color: INK }}>
-              {settings?.storeName || 'Tirupur Clothing Hub'}
+            <h1 className="text-[22px] font-semibold" style={{ fontFamily: FONT_SERIF, color: INK }}>
+              {settings?.storeName || 'Jai Womens World'}
             </h1>
             <p className="text-sm mt-1" style={{ color: INK_SOFT }}>{settings?.address || 'Tamil Nadu'}</p>
             <p className="text-sm" style={{ color: INK_SOFT }}>WhatsApp: +{settings?.whatsapp}</p>
@@ -105,7 +111,7 @@ export default async function InvoicePage({ params }) {
         </div>
 
         <p className="text-center text-xs mt-12" style={{ color: INK_SOFT }}>
-          Thank you for shopping with {settings?.storeName || 'Shea Fashions'}
+          Thank you for shopping with {settings?.storeName || 'Jai Womens World'}
         </p>
 
         <div className="mt-6 no-print">

@@ -8,17 +8,18 @@ import { useCart, cartKey } from '@/components/CartContext';
 import { formatINR } from '@/lib/utils';
 import { INDIAN_STATES } from '@/lib/indianStates';
 
-// Palette: #064E4A #C49A45 #FFFDF5 #172A29 #E7DCC5
-const INK = '#172A29';
-const INK_SOFT = '#6B7C7A';
-const TEAL = '#064E4A';
-const WASH = '#F5EFE0';
-const LINE = '#E7DCC5';
-const PAPER = '#FFFDF5';
-const RUST = '#B0503A';          // kept as-is: errors need to read as warnings
+// JAI WOMENS WORLD Brand Palette
+const INK = '#171717';
+const INK_SOFT = '#77716F';
+const TEAL = '#172333';          // Deep Navy primary
+const ROSE = '#B98270';          // Muted Rose
+const WASH = '#F4E8E3';
+const LINE = '#E9DFD9';
+const PAPER = '#F5F0E9';
+const RUST = '#B0503A';          // warning/error
 const RUST_WASH = '#FBEAE6';
-const TEAL_DISABLED = '#9DB5B2'; // muted teal for the disabled submit button
-const FONT_SERIF = "Georgia, 'Times New Roman', serif";
+const TEAL_DISABLED = '#8F9CA8'; // muted navy for disabled submit
+const FONT_SERIF = "var(--font-display), 'Cormorant Garamond', Georgia, serif";
 
 const inputClass =
   'w-full text-sm outline-none transition-colors px-3.5 py-2.5';
@@ -362,10 +363,10 @@ export default function CheckoutPage() {
           key: orderData.keyId,
           amount: orderData.order.amount,
           currency: 'INR',
-          name: 'Shea Fashions',
+          name: 'Jai Womens World',
           order_id: orderData.order.id,
           prefill: { name: cleanForm.name, contact: cleanForm.phone, email: cleanForm.email },
-          theme: { color: '#064E4A' },
+          theme: { color: '#172333' },
           handler: async function (response) {
             // Fast path — if this fails or never runs, the webhook creates
             // the same order server-side. /api/orders is idempotent on

@@ -1,12 +1,11 @@
 export default function robots() {
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.sheafashions.in').replace(/\/+$/, '');
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jaiwomensworld.com').replace(/\/+$/, '');
 
   return {
     rules: [
       {
         userAgent: '*',
         allow: '/',
-        // Keep crawlers off private pages and endless filter/sort/tracking URL variations
         disallow: [
           '/admin',
           '/api/',
@@ -15,7 +14,6 @@ export default function robots() {
           '/account',
           '/login',
           '/register',
-          '/wishlist',
           '/orders',
           '/*?*sort=',
           '/*?*filter=',
@@ -24,7 +22,6 @@ export default function robots() {
         ],
       },
       {
-        // AI training / scraper bots: block entirely to save function invocations
         userAgent: ['GPTBot', 'CCBot', 'ClaudeBot', 'Bytespider', 'Amazonbot', 'PerplexityBot', 'anthropic-ai'],
         disallow: '/',
       },

@@ -2,11 +2,10 @@ import { dbConnect } from '@/lib/mongodb';
 import Product from '@/models/Product';
 import Category from '@/models/Category';
 
-// Regenerate at most once per hour (ISR) so bots hitting /sitemap.xml don't trigger a DB query each time
 export const revalidate = 3600;
 
 export default async function sitemap() {
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.sheafashions.in').replace(/\/+$/, '');
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jaiwomensworld.com').replace(/\/+$/, '');
   let products = [];
   let categories = [];
 
@@ -28,14 +27,36 @@ export default async function sitemap() {
 
   const toDate = (d) => (d ? new Date(d) : undefined);
 
-  // Only pages you want indexed (cart/checkout are disallowed in robots.js).
-  // Add other public pages here, e.g. `${siteUrl}/about`, `${siteUrl}/contact`.
   const staticRoutes = [
     {
       url: siteUrl,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 1,
+    },
+    {
+      url: `${siteUrl}/products`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
+      url: `${siteUrl}/combos`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${siteUrl}/about`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${siteUrl}/bulk-enquiry`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.6,
     },
   ];
 
@@ -49,8 +70,8 @@ export default async function sitemap() {
   const productRoutes = products.map((p) => ({
     url: `${siteUrl}/product/${encodeURIComponent(p.slug)}`,
     lastModified: toDate(p.updatedAt),
-    changeFrequency: 'weekly',
-    priority: 0.7,
+    changeFrequency: 'daily',
+    priority: 0.85,
   }));
 
   return [...staticRoutes, ...categoryRoutes, ...productRoutes];

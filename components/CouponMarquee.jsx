@@ -1,18 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Tag, Truck } from 'lucide-react';
+import { Tag, Sparkles } from 'lucide-react';
 
-// Palette: #064E4A #C49A45 #FFFDF5 #172A29 #E7DCC5
-// Keep these tokens in sync with Navbar if you tweak the palette.
-const BG = '#064E4A';                       // deep teal bar
-const TEXT = '#FFFDF5';                     // cream text
-const TEXT_FAINT = 'rgba(255, 253, 245, 0.65)';
-const ACCENT = '#C49A45';                   // gold icons / coupon code underline
-
-// A quiet serif, matched to the wordmark used elsewhere on the site,
-// so the marquee reads as part of the same brand rather than generic UI text.
-const FONT = "Georgia, 'Times New Roman', serif";
+const BG = '#172333';                       // Deep navy bar
+const TEXT = '#F5F0E9';                     // Ivory text
+const ACCENT = '#BFA078';                   // Gold accent
+const ROSE = '#D8B5A9';                     // Blush accent
 
 export default function CouponMarquee() {
   const [coupons, setCoupons] = useState([]);
@@ -36,10 +30,10 @@ export default function CouponMarquee() {
   const allItems = freeShippingItem ? [...coupons, freeShippingItem] : coupons;
   if (!allItems.length) return null;
 
-  const items = [...allItems, ...allItems];
+  const items = [...allItems, ...allItems, ...allItems];
 
   return (
-    <div className="relative overflow-hidden py-2" style={{ background: BG }}>
+    <div className="relative overflow-hidden py-2.5 border-b border-[#BFA078]/20" style={{ background: BG }}>
       {/* Fade edges */}
       <div
         className="pointer-events-none absolute left-0 top-0 bottom-0 w-12 z-10"
@@ -50,37 +44,29 @@ export default function CouponMarquee() {
         style={{ background: `linear-gradient(to left, ${BG}, transparent)` }}
       />
 
-      <div className="flex animate-marquee whitespace-nowrap w-max">
+      <div className="flex animate-marquee whitespace-nowrap w-max select-none">
         {items.map((c, i) => (
           <span
             key={i}
-            className="inline-flex items-center gap-2 mx-8 text-[12px] tracking-[0.3px]"
-            style={{ color: TEXT, fontFamily: FONT }}
+            className="inline-flex items-center gap-2 mx-6 text-[11px] sm:text-xs tracking-[0.1em] uppercase font-light"
+            style={{ color: TEXT }}
           >
-            {i > 0 && <span className="mr-4" style={{ color: ACCENT }}>—</span>}
-
+            <Sparkles size={11} className="text-[#BFA078]" />
             {c.type === 'freeshipping' ? (
-              <>
-                <Truck size={12} strokeWidth={1.25} className="shrink-0" style={{ color: ACCENT }} />
-                Free shipping on orders above ₹{c.minOrderValue}
-              </>
+              <span>
+                Complimentary Shipping on Orders Above{' '}
+                <strong className="font-semibold text-[#BFA078]">₹{c.minOrderValue}</strong>
+              </span>
             ) : (
-              <>
-                <Tag size={12} strokeWidth={1.25} className="shrink-0" style={{ color: ACCENT }} />
-                Use{' '}
-                <span
-                  className="italic px-1.5"
-                  style={{ color: ACCENT, borderBottom: `1px solid ${ACCENT}` }}
-                >
-                  {c.code}
-                </span>
-                {' '}for{' '}
-                {c.type === 'percent' ? `${c.value}% off` : `₹${c.value} off`}
-                {c.minOrderValue > 0 && (
-                  <span style={{ color: TEXT_FAINT }}> on orders above ₹{c.minOrderValue}</span>
-                )}
-              </>
+              <span>
+                Use Code <span className="font-semibold text-white tracking-widest px-1.5 py-0.5 rounded bg-white/10">{c.code}</span> for{' '}
+                <strong className="font-semibold text-[#BFA078]">
+                  {c.discountType === 'percentage' ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`}
+                </strong>
+                {c.minOrderValue > 0 && ` (Min ₹${c.minOrderValue})`}
+              </span>
             )}
+            <span className="mx-4 text-[#D8B5A9]/40">&bull;</span>
           </span>
         ))}
       </div>

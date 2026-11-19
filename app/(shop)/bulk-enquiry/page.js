@@ -1,30 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Sparkles, Building2 } from 'lucide-react';
 
-const GOLD = '#C9A227';
-const INK = '#000000';
-const INK_SOFT = '#6B6B6B';
-const LINE = '#E8E8E8';
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP || '919500381414';
+const FALLBACK_PRODUCTS = ['Salwar Sets', 'Rayon Umbrella Kurtis', 'Side Open Kurtis', 'Nighties', 'Other Boutique Wear'];
 
-const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP || '919344430878';
-
-const FALLBACK_PRODUCTS = ['Kurtis', 'Nighties', 'Innerwear', 'Other'];
-
-const inputClass =
-  'w-full px-4 py-3 text-sm bg-transparent outline-none transition-colors focus:border-black';
-
-const inputStyle = { color: INK, border: `1px solid ${LINE}` };
-
-// Defined OUTSIDE the page component so it isn't re-created on every render
-// (re-creating it caused inputs to lose focus after each keystroke).
 function Field({ error, children }) {
   return (
     <div>
       {children}
       {error && (
-        <p className="text-[11px] mt-1" style={{ color: '#B00020' }}>
+        <p className="text-[11px] mt-1 text-[#B0503A] font-medium">
           {error}
         </p>
       )}
@@ -47,13 +34,12 @@ export default function BulkEnquiryPage() {
   });
   const [errors, setErrors] = useState({});
 
-  // Use the store's own categories as product types, if available
   useEffect(() => {
     fetch('/api/categories')
       .then((r) => r.json())
       .then((d) => {
         const names = (d.topLevel || []).map((c) => c.name).filter(Boolean);
-        if (names.length) setProductTypes([...names, 'Other']);
+        if (names.length) setProductTypes([...names, 'Other Boutique Wear']);
       })
       .catch(() => {});
   }, []);
@@ -65,14 +51,14 @@ export default function BulkEnquiryPage() {
 
   function validate() {
     const e = {};
-    if (!form.name.trim()) e.name = 'Please enter your name';
-    if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) e.email = 'Enter a valid email';
-    if (!form.address.trim()) e.address = 'Please enter your address';
-    if (!/^\d{6}$/.test(form.pincode.trim())) e.pincode = 'Enter a 6-digit pincode';
+    if (!form.name.trim()) e.name = 'Please enter your full name';
+    if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) e.email = 'Enter a valid email address';
+    if (!form.address.trim()) e.address = 'Please enter your shipping/business address';
+    if (!/^\d{6}$/.test(form.pincode.trim())) e.pincode = 'Enter a valid 6-digit pincode';
     if (!/^\d{10}$/.test(form.phone.replace(/\D/g, '').slice(-10)))
       e.phone = 'Enter a valid 10-digit phone number';
-    if (!form.product) e.product = 'Select a product type';
-    if (!form.quantity || Number(form.quantity) < 1) e.quantity = 'Enter the quantity required';
+    if (!form.product) e.product = 'Select a product category';
+    if (!form.quantity || Number(form.quantity) < 1) e.quantity = 'Enter the required quantity';
     if (!form.agree) e.agree = 'Please accept the Terms & Conditions';
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -83,156 +69,187 @@ export default function BulkEnquiryPage() {
     if (!validate()) return;
 
     const lines = [
-      '*Bulk Order Enquiry*',
+      '*Jai Womens World — Wholesale / Bulk Order Enquiry*',
       '',
       `*Name:* ${form.name.trim()}`,
       `*Email:* ${form.email.trim()}`,
       `*Phone:* ${form.phone.trim()}`,
       `*Address:* ${form.address.trim()}`,
       `*Pincode:* ${form.pincode.trim()}`,
-      `*Product Type:* ${form.product}`,
+      `*Product Category:* ${form.product}`,
       `*Quantity Required:* ${form.quantity}`,
     ];
-    if (form.message.trim()) lines.push('', `*Message:* ${form.message.trim()}`);
+    if (form.message.trim()) lines.push('', `*Details:* ${form.message.trim()}`);
 
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join('\n'))}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   }
 
+  const inputClass =
+    'w-full px-4 py-3 text-sm bg-white border border-[#E9DFD9] rounded focus:border-[#B98270] outline-none transition-colors text-[#171717] placeholder:text-[#77716F]';
+
   return (
-    <main className="max-w-xl mx-auto px-4 py-10 sm:py-14">
-      <h1
-        className="text-2xl sm:text-3xl text-center tracking-[2px] uppercase mb-2"
-        style={{ color: INK }}
-      >
-        Bulk Order Enquiry
-      </h1>
-      <div className="w-12 h-[2px] mx-auto mb-8" style={{ background: GOLD }} />
-      <p className="text-center text-sm mb-8" style={{ color: INK_SOFT }}>
-        Fill in your details and we&apos;ll get back to you on WhatsApp.
-      </p>
+    <div className="bg-[#F5F0E9] min-h-screen py-10 sm:py-16">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
+        
+        {/* Header */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-1.5 text-[10.5px] uppercase tracking-[0.22em] font-semibold text-[#B98270] mb-2">
+            <Building2 size={13} className="text-[#BFA078]" />
+            Wholesale &amp; Bulk Orders
+          </div>
+          <h1 className="font-display text-3xl sm:text-4xl font-semibold text-[#172333]">
+            Bulk Purchase Enquiry
+          </h1>
+          <div className="w-10 h-0.5 bg-[#BFA078] mx-auto my-3" />
+          <p className="text-xs sm:text-sm text-[#77716F] font-light max-w-lg mx-auto leading-relaxed">
+            Planning a bulk purchase for a wedding, family function, or retail reselling? Fill in your details below and we will contact you with special trade prices.
+          </p>
+        </div>
 
-      <form
-        onSubmit={onSubmit}
-        noValidate
-        className="space-y-4 p-5 sm:p-8"
-        style={{ border: `1px solid ${LINE}`, borderTop: `2px solid ${GOLD}` }}
-      >
-        <Field error={errors.name}>
-          <input
-            className={inputClass}
-            style={inputStyle}
-            placeholder="First Name*"
-            value={form.name}
-            onChange={(e) => update('name', e.target.value)}
-          />
-        </Field>
-
-        <Field error={errors.email}>
-          <input
-            type="email"
-            className={inputClass}
-            style={inputStyle}
-            placeholder="Email*"
-            value={form.email}
-            onChange={(e) => update('email', e.target.value)}
-          />
-        </Field>
-
-        <Field error={errors.address}>
-          <input
-            className={inputClass}
-            style={inputStyle}
-            placeholder="Full Address*"
-            value={form.address}
-            onChange={(e) => update('address', e.target.value)}
-          />
-        </Field>
-
-        <Field error={errors.pincode}>
-          <input
-            inputMode="numeric"
-            maxLength={6}
-            className={inputClass}
-            style={inputStyle}
-            placeholder="Pincode*"
-            value={form.pincode}
-            onChange={(e) => update('pincode', e.target.value.replace(/\D/g, ''))}
-          />
-        </Field>
-
-        <Field error={errors.phone}>
-          <input
-            type="tel"
-            inputMode="numeric"
-            maxLength={13}
-            className={inputClass}
-            style={inputStyle}
-            placeholder="Phone Number*"
-            value={form.phone}
-            onChange={(e) => update('phone', e.target.value.replace(/[^\d+\s]/g, ''))}
-          />
-        </Field>
-
-        <Field error={errors.product}>
-          <select
-            className={inputClass}
-            style={{ ...inputStyle, color: form.product ? INK : INK_SOFT }}
-            value={form.product}
-            onChange={(e) => update('product', e.target.value)}
-          >
-            <option value="">Product Type*</option>
-            {productTypes.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-        </Field>
-
-        <Field error={errors.quantity}>
-          <input
-            type="number"
-            min="1"
-            inputMode="numeric"
-            className={inputClass}
-            style={inputStyle}
-            placeholder="Quantity Required*"
-            value={form.quantity}
-            onChange={(e) => update('quantity', e.target.value)}
-          />
-        </Field>
-
-        <textarea
-          rows={5}
-          className={inputClass}
-          style={inputStyle}
-          placeholder="Message"
-          value={form.message}
-          onChange={(e) => update('message', e.target.value)}
-        />
-
-        <Field error={errors.agree}>
-          <label className="flex items-start gap-2.5 text-[13px] cursor-pointer" style={{ color: INK }}>
-            <input
-              type="checkbox"
-              className="mt-0.5 w-4 h-4 accent-black shrink-0"
-              checked={form.agree}
-              onChange={(e) => update('agree', e.target.checked)}
-            />
-            <span>I agree to the Terms &amp; Conditions and Privacy Policy.*</span>
-          </label>
-        </Field>
-
-        <button
-          type="submit"
-          className="w-full flex items-center justify-center gap-2 py-3.5 text-sm font-medium tracking-[1.5px] uppercase transition-opacity hover:opacity-85"
-          style={{ background: INK, color: '#fff', borderBottom: `2px solid ${GOLD}` }}
+        {/* Form Card */}
+        <form
+          onSubmit={onSubmit}
+          noValidate
+          className="bg-white rounded-xl border border-[#E9DFD9] shadow-card p-6 sm:p-10 space-y-5"
         >
-          <MessageCircle size={16} strokeWidth={1.75} />
-          Submit
-        </button>
-      </form>
-    </main>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field error={errors.name}>
+              <label className="block text-xs uppercase tracking-wider font-medium text-[#77716F] mb-1.5">
+                Full Name *
+              </label>
+              <input
+                type="text"
+                placeholder="Enter your name"
+                value={form.name}
+                onChange={(e) => update('name', e.target.value)}
+                className={inputClass}
+              />
+            </Field>
+
+            <Field error={errors.phone}>
+              <label className="block text-xs uppercase tracking-wider font-medium text-[#77716F] mb-1.5">
+                Phone Number *
+              </label>
+              <input
+                type="tel"
+                placeholder="10-digit mobile number"
+                value={form.phone}
+                onChange={(e) => update('phone', e.target.value)}
+                className={inputClass}
+              />
+            </Field>
+          </div>
+
+          <Field error={errors.email}>
+            <label className="block text-xs uppercase tracking-wider font-medium text-[#77716F] mb-1.5">
+              Email Address *
+            </label>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={form.email}
+              onChange={(e) => update('email', e.target.value)}
+              className={inputClass}
+            />
+          </Field>
+
+          <Field error={errors.address}>
+            <label className="block text-xs uppercase tracking-wider font-medium text-[#77716F] mb-1.5">
+              Delivery / Business Address *
+            </label>
+            <input
+              type="text"
+              placeholder="Street address, city, state"
+              value={form.address}
+              onChange={(e) => update('address', e.target.value)}
+              className={inputClass}
+            />
+          </Field>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field error={errors.pincode}>
+              <label className="block text-xs uppercase tracking-wider font-medium text-[#77716F] mb-1.5">
+                Pincode *
+              </label>
+              <input
+                type="text"
+                maxLength={6}
+                placeholder="6-digit pincode"
+                value={form.pincode}
+                onChange={(e) => update('pincode', e.target.value)}
+                className={inputClass}
+              />
+            </Field>
+
+            <Field error={errors.product}>
+              <label className="block text-xs uppercase tracking-wider font-medium text-[#77716F] mb-1.5">
+                Product Category *
+              </label>
+              <select
+                value={form.product}
+                onChange={(e) => update('product', e.target.value)}
+                className={`${inputClass} cursor-pointer`}
+              >
+                <option value="">Select a category</option>
+                {productTypes.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <Field error={errors.quantity}>
+            <label className="block text-xs uppercase tracking-wider font-medium text-[#77716F] mb-1.5">
+              Quantity Needed (Pieces) *
+            </label>
+            <input
+              type="number"
+              min="1"
+              placeholder="e.g. 50"
+              value={form.quantity}
+              onChange={(e) => update('quantity', e.target.value)}
+              className={inputClass}
+            />
+          </Field>
+
+          <div>
+            <label className="block text-xs uppercase tracking-wider font-medium text-[#77716F] mb-1.5">
+              Additional Details (Optional)
+            </label>
+            <textarea
+              rows={3}
+              placeholder="Sizes, preferred colors, delivery date, custom stitching requirements..."
+              value={form.message}
+              onChange={(e) => update('message', e.target.value)}
+              className={`${inputClass} resize-none`}
+            />
+          </div>
+
+          <Field error={errors.agree}>
+            <label className="flex items-start gap-2.5 cursor-pointer pt-2">
+              <input
+                type="checkbox"
+                checked={form.agree}
+                onChange={(e) => update('agree', e.target.checked)}
+                className="mt-1 w-4 h-4 rounded text-[#172333] accent-[#172333]"
+              />
+              <span className="text-xs text-[#77716F] leading-relaxed">
+                I agree to be contacted on WhatsApp / Phone regarding this enquiry and accept the store policies.
+              </span>
+            </label>
+          </Field>
+
+          <button
+            type="submit"
+            className="w-full mt-4 py-3.5 rounded bg-[#172333] hover:bg-[#B98270] text-white text-xs uppercase tracking-[0.16em] font-semibold transition-all shadow-boutique flex items-center justify-center gap-2"
+          >
+            <MessageCircle size={16} />
+            <span>Submit via WhatsApp</span>
+          </button>
+        </form>
+
+      </div>
+    </div>
   );
 }
