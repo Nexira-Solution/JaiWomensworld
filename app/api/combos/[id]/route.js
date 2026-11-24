@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { dbConnect } from '@/lib/mongodb';
 import Combo from '@/models/Combo';
 import { requireAdmin } from '@/lib/apiAuth';
@@ -43,6 +44,8 @@ export const PUT = requireAdmin(async (req, { params }) => {
       return NextResponse.json({ error: 'Combo not found' }, { status: 404 });
     }
 
+    revalidatePath('/');
+    revalidatePath('/combo');
     return NextResponse.json({ combo });
   } catch (err) {
     return NextResponse.json({ error: err.message || 'Failed to update combo' }, { status: 400 });
@@ -58,5 +61,7 @@ export const DELETE = requireAdmin(async (req, { params }) => {
     return NextResponse.json({ error: 'Combo not found' }, { status: 404 });
   }
 
+  revalidatePath('/');
+  revalidatePath('/combo');
   return NextResponse.json({ success: true });
 });

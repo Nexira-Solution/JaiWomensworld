@@ -31,6 +31,7 @@ const STATUS_STYLES = {
 
 function ReviewForm({ order, item, phone, onDone }) {
   const [rating, setRating] = useState(5);
+  const [title, setTitle] = useState('');
   const [comment, setComment] = useState('');
   const [images, setImages] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -59,16 +60,20 @@ function ReviewForm({ order, item, phone, onDone }) {
   }
 
   async function submit() {
+    if (!comment.trim()) {
+      toast.error('Please share your review description');
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetch(`/api/orders/${order._id}/review`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, productId: item.product, rating, comment, images })
+        body: JSON.stringify({ phone, productId: item.product, rating, title, comment, images })
       });
       const data = await res.json();
       if (res.ok) {
-        toast.success('Thanks for your review!');
+        toast.success(data.message || 'Thank you for your review! Your review has been submitted successfully and is awaiting admin approval.', { duration: 4000 });
         onDone();
       } else {
         toast.error(data.error || 'Could not submit review');
@@ -83,7 +88,7 @@ function ReviewForm({ order, item, phone, onDone }) {
   return (
     <div className="p-3.5 mt-2" style={{ background: PEACH_LIGHT, borderRadius: '4px' }}>
       <div className="flex items-center justify-between mb-2.5">
-        <span className="text-xs" style={{ color: INK }}>Rate {item.name}</span>
+        <span className="text-xs font-semibold" style={{ color: INK }}>Rate {item.name}</span>
         <button onClick={onDone} type="button">
           <X size={13} strokeWidth={1.5} style={{ color: INK_SOFT }} />
         </button>
@@ -99,13 +104,22 @@ function ReviewForm({ order, item, phone, onDone }) {
           </button>
         ))}
       </div>
+      <input
+        type="text"
+        placeholder="Review title (optional)"
+        className="w-full text-xs mb-2 px-3 py-1.5 outline-none"
+        style={{ border: `1px solid ${LINE}`, borderRadius: '3px', color: INK, background: PAPER }}
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+      />
       <textarea
         rows={2}
-        placeholder="How was the product?"
+        placeholder="How was the product? Stitching, fit, fabric quality..."
         className="w-full text-sm mb-2.5 px-3 py-2 outline-none"
         style={{ border: `1px solid ${LINE}`, borderRadius: '3px', color: INK, background: PAPER }}
         value={comment}
         onChange={(e) => setComment(e.target.value)}
+        required
       />
       <div className="flex flex-wrap gap-2 mb-3">
         {images.map((url, i) => (

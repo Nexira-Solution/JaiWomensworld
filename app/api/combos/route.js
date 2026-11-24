@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { dbConnect } from '@/lib/mongodb';
 import Combo from '@/models/Combo';
 import slugify from 'slugify';
@@ -50,6 +51,8 @@ export const POST = requireAdmin(async (req) => {
     const pieceWeight = Math.max(0, Number(body.pieceWeight) || 0);
     sanitizeFreeShipping(body);
     const combo = await Combo.create({ ...body, slug, weight, pieceWeight });
+    revalidatePath('/');
+    revalidatePath('/combo');
     return NextResponse.json({ combo }, { status: 201 });
   } catch (err) {
     return NextResponse.json({ error: err.message || 'Failed to create combo' }, { status: 400 });

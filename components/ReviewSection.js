@@ -4,70 +4,13 @@ import Image from 'next/image';
 import { Star, ChevronLeft, ChevronRight, X, ZoomIn, Quote, CheckCircle } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 
-const SAMPLE_REVIEWS = [
-  {
-    _id: 'sample-1',
-    customerName: 'Priya Sundaram',
-    rating: 5,
-    title: 'Flawless Fit & Premium Fabric',
-    comment:
-      'The Rayon Umbrella Kurti fits like a dream! Fabric is exceptionally breathable, soft against the skin, and the stitching is truly boutique-grade. Delivery was super fast.',
-    productName: 'Rayon Umbrella Kurti',
-    city: 'Chennai',
-    images: [],
-  },
-  {
-    _id: 'sample-2',
-    customerName: 'Anitha Rajesh',
-    rating: 5,
-    title: 'Loved the Salwar Set',
-    comment:
-      'The 2-piece salwar set is stunning. The colors are true to photos, fabric feels luxurious, and the drape is very flattering. Truly high quality ethnic wear.',
-    productName: 'Handcrafted Salwar Set',
-    city: 'Coimbatore',
-    images: [],
-  },
-  {
-    _id: 'sample-3',
-    customerName: 'Deepa Narayanan',
-    rating: 5,
-    title: 'Exceeded My Expectations',
-    comment:
-      'Ordered 3 nighties and 2 side-open kurtis. Stitching, seam strength, and fabric softness are beyond what I expected. Jai Womens World is now my go-to boutique!',
-    productName: 'Pure Cotton Daily Wear',
-    city: 'Tiruvannamalai',
-    images: [],
-  },
-  {
-    _id: 'sample-4',
-    customerName: 'Meenakshi Krishnan',
-    rating: 5,
-    title: 'Gorgeous Flare & Silhouette',
-    comment:
-      'The Umbrella Kurti has such an elegant flare! Customer support on WhatsApp was prompt and helped me choose the exact right size. Wonderful experience.',
-    productName: 'Umbrella Festive Kurti',
-    city: 'Madurai',
-    images: [],
-  },
-  {
-    _id: 'sample-5',
-    customerName: 'Kavitha Ramesh',
-    rating: 5,
-    title: 'Authentic Boutique Quality',
-    comment:
-      'Premium boutique finish at remarkably honest prices. My mother loved the soft cotton touch and comfortable cut. Will certainly order again soon.',
-    productName: 'Side Open Cotton Kurti',
-    city: 'Bengaluru',
-    images: [],
-  },
-];
-
 export default function ReviewSection({ reviews = [] }) {
   const scrollerRef = useRef(null);
   const [lightbox, setLightbox] = useState(null);
 
-  // If live reviews exist, use them; otherwise use sample boutique reviews
-  const displayReviews = reviews?.length > 0 ? reviews : SAMPLE_REVIEWS;
+  // Display only real approved reviews from database; never display dummy or hardcoded fake reviews
+  const displayReviews = Array.isArray(reviews) ? reviews : [];
+  if (displayReviews.length === 0) return null;
 
   useEffect(() => {
     if (!lightbox) return;

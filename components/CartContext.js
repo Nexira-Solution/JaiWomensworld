@@ -217,24 +217,42 @@ export function CartProvider({ children }) {
     brandToast('Some items are no longer available and were removed', { icon: '⚠️', style: warnStyle });
   }, [commit]);
 
-  // Applies server prices: updates: [{ key, price }]. Shows one toast if anything changed.
+  // Applies server updates: updates: [{ key, price, image }]. Shows one toast if price changed.
   const syncPrices = useCallback((updates) => {
     if (!updates?.length) return;
-    const map = new Map(updates.map((u) => [u.key, u.price]));
-    let changed = false;
+    const map = new Map(updates.map((u) => [u.key, u]));
+    let priceChanged = false;
+    let anyChanged = false;
 
     const next = itemsRef.current.map((i) => {
-      const p = map.get(cartKey(i));
-      if (p !== undefined && p !== i.price) {
-        changed = true;
-        return { ...i, price: p };
+      const u = map.get(cartKey(i));
+      if (!u) return i;
+      let lineChanged = false;
+      let p = i.price;
+      let img = i.image;
+
+      if (u.price !== undefined && u.price !== i.price) {
+        p = u.price;
+        lineChanged = true;
+        priceChanged = true;
+      }
+      if (u.image && !i.image) {
+        img = u.image;
+        lineChanged = true;
+      }
+
+      if (lineChanged) {
+        anyChanged = true;
+        return { ...i, price: p, image: img };
       }
       return i;
     });
 
-    if (changed) {
+    if (anyChanged) {
       commit(next);
-      brandToast('Some prices were updated', { icon: 'ℹ️', style: warnStyle });
+      if (priceChanged) {
+        brandToast('Some prices were updated', { icon: 'ℹ️', style: warnStyle });
+      }
     }
   }, [commit]);
 

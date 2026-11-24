@@ -121,24 +121,24 @@ export default function CategoryShowcase({ categories = [] }) {
       <div className="relative z-10 text-center px-4">
         <h2
           id="shop-by-category"
-          className="font-display font-bold text-[34px] sm:text-5xl lg:text-[56px] leading-[1.05] text-[#12233F]"
+          className="font-display font-bold text-[30px] sm:text-5xl lg:text-[56px] leading-[1.05] text-[#12233F]"
         >
           Shop by <span className="text-[#B02F5E]">Category</span>
         </h2>
-        <LotusDivider className="mt-3" />
-        <p className="mt-3 font-display text-[15px] sm:text-xl text-[#12233F]/85">
+        <LotusDivider className="mt-1 sm:mt-3" />
+        <p className="mt-1 sm:mt-3 font-display text-[14px] sm:text-xl text-[#12233F]/85">
           Discover your style from our exclusive collections
         </p>
       </div>
 
       {/* Clothesline */}
-      <div className="relative z-10 mt-10 sm:mt-14">
+      <div className="relative z-10 mt-2 sm:mt-14">
         <div
           ref={railRef}
           onScroll={onScroll}
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
-          className="no-scrollbar overflow-x-auto snap-x snap-mandatory scroll-smooth pb-16 pt-6 -mb-6"
+          className="no-scrollbar overflow-x-auto snap-x snap-mandatory scroll-smooth pb-12 sm:pb-16 pt-0 sm:pt-6 -mb-4 sm:-mb-6"
         >
           <div className="rope-wrap flex items-start w-max min-w-full lg:w-full">
             <span className="rope-flat" aria-hidden="true" />

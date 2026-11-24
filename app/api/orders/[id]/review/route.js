@@ -2,22 +2,26 @@ import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/mongodb';
 import Order from '@/models/Order';
 import Review from '@/models/Review';
-import Product from '@/models/Product';
 
 // POST /api/orders/:id/review -> customer rates one product from their own delivered order
 export async function POST(req, { params }) {
   await dbConnect();
+  const { id } = await params;
   const body = await req.json();
-  const { phone, productId, rating, comment, images } = body;
+  const { phone, productId, rating, title, comment, images } = body;
 
   if (!phone || !productId || !rating) {
     return NextResponse.json({ error: 'Phone, product and rating are required' }, { status: 400 });
   }
 
-  const order = await Order.findById(params.id);
+  if (!comment || typeof comment !== 'string' || !comment.trim()) {
+    return NextResponse.json({ error: 'Review description is required' }, { status: 400 });
+  }
+
+  const order = await Order.findById(id);
   if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 
-  // verify the phone actually matches this order — prevents anyone with the order id from reviewing it
+  // verify the phone actually matches this order
   const cleanedInput = String(phone).replace(/\D/g, '').slice(-10);
   const cleanedOrder = String(order.customer?.phone || '').replace(/\D/g, '').slice(-10);
   if (!cleanedInput || cleanedInput !== cleanedOrder) {
@@ -41,13 +45,24 @@ export async function POST(req, { params }) {
   const review = await Review.create({
     product: productId,
     order: order._id,
-    customerName: order.customer.name,
+    customerName: order.customer?.name || 'Verified Customer',
+    customerPhone: order.customer?.phone || '',
+    customerEmail: order.customer?.email || '',
     rating: Number(rating),
-    comment: comment || '',
+    title: (title || '').trim(),
+    comment: comment.trim(),
     images: Array.isArray(images) ? images : [],
-    isApproved: false, // still goes through admin approval, just flagged as a verified purchase
-    isVerifiedPurchase: true
+    status: 'pending',
+    isApproved: false,
+    isVerifiedPurchase: true,
   });
 
-  return NextResponse.json({ review, message: 'Thanks for your review! It will appear after approval.' }, { status: 201 });
+  return NextResponse.json(
+    {
+      review,
+      message:
+        'Thank you for your review! Your review has been submitted successfully and is awaiting admin approval.',
+    },
+    { status: 201 }
+  );
 }

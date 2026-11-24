@@ -8,6 +8,14 @@ import { formatINR } from '@/lib/utils';
 import CartRecommendations from '@/components/CartRecommendations';
 import { Trash2, ShoppingBag, ArrowRight, ShieldCheck, Truck } from 'lucide-react';
 
+function getCartItemImage(item) {
+  if (typeof item.image === 'string' && item.image.trim()) return item.image.trim();
+  if (Array.isArray(item.image) && item.image[0]) return item.image[0];
+  if (Array.isArray(item.images) && item.images[0]) return item.images[0];
+  if (item.variant?.images?.[0]) return item.variant.images[0];
+  return '/placeholder.png';
+}
+
 export default function CartPage() {
   const { items, updateQty, removeItem, subtotal } = useCart();
   const { loading: syncing } = useCartQuote();
@@ -74,11 +82,19 @@ export default function CartPage() {
               .filter(Boolean)
               .join(' · ');
 
+            const itemImage = getCartItemImage(item);
+
             return (
               <div key={key} className="p-4 sm:p-6 flex gap-4 sm:gap-6 items-start">
                 {/* Image */}
-                <div className="relative shrink-0 w-20 h-26 sm:w-24 sm:h-32 rounded-md overflow-hidden bg-[#FCE4E8] border border-[#F5D5DB]">
-                  <Image src={item.image || '/placeholder.png'} alt={item.name} fill className="object-cover" />
+                <div className="relative shrink-0 w-20 h-28 sm:w-24 sm:h-32 rounded-md overflow-hidden bg-[#FCE4E8] border border-[#F5D5DB]">
+                  <Image
+                    src={itemImage}
+                    alt={item.name || 'Product'}
+                    fill
+                    sizes="(max-width: 640px) 80px, 96px"
+                    className="object-cover"
+                  />
                 </div>
 
                 {/* Details */}

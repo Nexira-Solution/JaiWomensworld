@@ -3,6 +3,7 @@ import { unstable_cache } from 'next/cache';
 import { Toaster } from 'react-hot-toast';
 import { CartProvider } from '@/components/CartContext';
 import { WishlistProvider } from '@/components/WhishlistContext';
+import { FlipCardProvider } from '@/components/FlipCardContext';
 import { dbConnect } from '@/lib/mongodb';
 import Settings from '@/models/Settings';
 
@@ -65,12 +66,11 @@ export async function generateMetadata() {
     category: 'fashion',
     icons: {
       icon: [
-        { url: '/Jai-logo.jpeg?v=3', type: 'image/jpeg' },
-        { url: '/icon.png?v=3', type: 'image/png' },
-        { url: '/favicon.ico?v=3', sizes: 'any' },
+        { url: '/favicon.ico' },
+        { url: '/Jai-logo.jpeg', type: 'image/jpeg' },
       ],
-      shortcut: ['/Jai-logo.jpeg?v=3'],
-      apple: [{ url: '/Jai-logo.jpeg?v=3' }],
+      shortcut: ['/favicon.ico'],
+      apple: [{ url: '/Jai-logo.jpeg' }],
     },
     alternates: {
       canonical: '/',
@@ -197,7 +197,9 @@ export default function RootLayout({ children }) {
 
         <CartProvider>
           <WishlistProvider>
-            {children}
+            <FlipCardProvider>
+              {children}
+            </FlipCardProvider>
           </WishlistProvider>
         </CartProvider>
 

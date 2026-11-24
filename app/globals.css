@@ -209,15 +209,77 @@ body {
 /* ---------- ProductCard: hover (desktop) / tap (touch) expansion ---------- */
 .hc-panel { transform: translateY(104%); transition: transform .55s cubic-bezier(.22,.8,.24,1); }
 .hc-default { transition: opacity .3s ease, transform .45s cubic-bezier(.22,.8,.24,1); }
-.hc[data-open="true"] .hc-panel { transform: translateY(0); }
-.hc[data-open="true"] .hc-default { opacity: 0; transform: translateY(14px); pointer-events: none; }
-/* keep the toggle reachable even when the default panel fades out */
-.hc[data-open="true"] .hc-toggle { pointer-events: auto; }
 
 @media (hover: hover) and (pointer: fine) {
   .hc:hover .hc-panel, .hc:has(.hc-panel :focus-visible) .hc-panel { transform: translateY(0); }
   .hc:hover .hc-default, .hc:has(.hc-panel :focus-visible) .hc-default { opacity: 0; transform: translateY(14px); pointer-events: none; }
   .hc-toggle, .hc-close { display: none; }
+}
+
+/* ---------- Mobile/Tablet 3D Flip Card ---------- */
+.flip-card-wrapper {
+  perspective: 1200px;
+  -webkit-perspective: 1200px;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.flip-card-inner.is-flipped {
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 26px;
+  overflow: hidden;
+}
+
+.flip-card-front {
+  transform: rotateY(0deg);
+  -webkit-transform: rotateY(0deg);
+  z-index: 2;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+  z-index: 1;
+}
+
+.flip-card-inner.is-flipped .flip-card-front {
+  z-index: 1;
+  pointer-events: none;
+}
+
+.flip-card-inner.is-flipped .flip-card-back {
+  z-index: 3;
+  pointer-events: auto;
+}
+
+/* On desktop, keep standard layout and hide 3D flip backside */
+@media (min-width: 1024px) {
+  .flip-card-inner {
+    transform: none !important;
+    -webkit-transform: none !important;
+    transition: none !important;
+  }
+  .flip-card-back {
+    display: none !important;
+  }
 }
 
 /* ---------- Clothesline rope stubs ---------- */

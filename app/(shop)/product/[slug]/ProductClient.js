@@ -25,6 +25,7 @@ import { useCart } from '@/components/CartContext';
 import { useWishlist } from '@/components/WhishlistContext';
 import ColorSizeSelector from '@/components/ColorSizeSelector';
 import RelatedProducts from '@/components/RelatedProducts';
+import ProductReviewsSection from '@/components/ProductReviewsSection';
 import toast from 'react-hot-toast';
 
 const SizeChartModal = dynamic(() => import('@/components/SizeChartModal'), { ssr: false });
@@ -168,12 +169,14 @@ export default function ProductClient({ data }) {
   }
 
   function buildCartPayload() {
+    const rawImg = activeVariant?.images?.[0] || product.variants?.[0]?.images?.[0] || '';
+    const resolvedImg = typeof rawImg === 'string' ? rawImg : (Array.isArray(rawImg) ? rawImg[0] : '');
     return {
       productId: product._id,
       variantId: activeVariant._id,
       comboId: null,
       name: product.name,
-      image: activeVariant.images?.[0],
+      image: resolvedImg,
       color: activeVariant.color,
       size: activeSize,
       sleeveType: activeSleeve,
@@ -373,6 +376,40 @@ export default function ProductClient({ data }) {
                   {product.name}
                 </h1>
 
+                {/* Dynamic Rating & Reviews Summary */}
+                <div className="mt-2.5 flex items-center gap-2">
+                  {product.rating > 0 && product.reviewCount > 0 ? (
+                    <>
+                      <div className="flex items-center gap-0.5">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            size={14}
+                            className={
+                              i < Math.round(product.rating)
+                                ? 'fill-[#D9A441] text-[#D9A441]'
+                                : 'text-[#F5D5DB]'
+                            }
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs font-bold text-[#12233F]">
+                        {product.rating.toFixed(1)}/5
+                      </span>
+                      <span className="text-xs text-[#7B5D69]">
+                        ({product.reviewCount} {product.reviewCount === 1 ? 'review' : 'reviews'})
+                      </span>
+                    </>
+                  ) : (
+                    <div className="flex items-center gap-1.5 text-xs text-[#7B5D69]">
+                      <Star size={13} className="text-[#F5D5DB]" />
+                      <span>No ratings yet</span>
+                      <span>•</span>
+                      <span>0 reviews</span>
+                    </div>
+                  )}
+                </div>
+
                 {/* Pricing Block */}
                 <div className="mt-4 flex items-baseline gap-3">
                   <span className="font-display text-3xl font-semibold text-[#12233F]">
@@ -509,49 +546,11 @@ export default function ProductClient({ data }) {
           </div>
         </div>
 
-        {/* Customer Reviews Section */}
-        {reviews?.length > 0 && (
-          <div className="mt-16 sm:mt-24">
-            <div className="text-center sm:text-left mb-8">
-              <span className="text-[10.5px] uppercase tracking-[0.2em] font-semibold text-[#B02F5E] block mb-1">
-                Verified Feedback
-              </span>
-              <h2 className="font-display text-2xl sm:text-3xl font-semibold text-[#12233F]">
-                Customer Reviews
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {reviews.map((r) => (
-                <div key={r._id} className="p-6 rounded-lg bg-white border border-[#F5D5DB] shadow-card">
-                  <div className="flex items-center gap-1 mb-2">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        size={13}
-                        className={i < r.rating ? 'text-[#D9A441] fill-[#D9A441]' : 'text-[#F5D5DB]'}
-                      />
-                    ))}
-                    {r.isVerifiedPurchase && (
-                      <span className="text-[10px] text-[#B02F5E] font-medium ml-2 uppercase tracking-wide">
-                        Verified Purchase
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs sm:text-sm text-[#171717] font-light italic leading-relaxed my-2">
-                    &ldquo;{r.comment}&rdquo;
-                  </p>
-                  <p className="text-[11px] text-[#7B5D69] font-medium mt-3">
-                    {r.customerName || 'Happy Customer'}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Related Products */}
         <RelatedProducts items={related} />
+
+        {/* Customer Reviews Section (Placed below Related Products) */}
+        <ProductReviewsSection product={product} initialReviews={reviews} />
 
       </div>
 

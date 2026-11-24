@@ -27,7 +27,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 
-export const revalidate = 600;
+export const dynamic = 'force-dynamic';
 
 const FEATURED_LIMIT = 8;
 const REELS_LIMIT = 10;
@@ -208,8 +208,8 @@ const SAMPLE_SILK_SAREE = {
   name: 'Silk Cotton Saree',
   slug: 'silk-cotton-saree',
   basePrice: 2099,
-  rating: 4.6,
-  reviewCount: 210,
+  rating: 0,
+  reviewCount: 0,
   description: 'Elegant silk cotton saree with traditional zari border.',
   isBestSeller: true,
   variants: [
@@ -222,7 +222,8 @@ const SAMPLE_PRODUCTS_READY = [
   SAMPLE_SILK_SAREE,
   ...SAMPLE_PRODUCTS.map((p) => ({
     ...p,
-    reviewCount: p.soldCount,
+    rating: 0,
+    reviewCount: 0,
     description: 'Soft, breathable fabric with a graceful fall and boutique-quality stitching.',
     variants: p.variants.map((v, i) => ({
       ...v,
@@ -234,27 +235,6 @@ const SAMPLE_PRODUCTS_READY = [
   })),
 ];
 
-const SAMPLE_COMBOS = [
-  {
-    _id: 'sample-combo-1',
-    name: '3x Rayon Umbrella Kurtis Value Pack',
-    slug: '3x-rayon-umbrella-kurtis-value-pack',
-    comboPrice: 1999,
-    originalPrice: 2899,
-    images: ['https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'],
-    description: 'Pick any 3 colours from our best-selling umbrella rayon kurti range at a special boutique bundle price.',
-  },
-  {
-    _id: 'sample-combo-2',
-    name: 'Comfort Sleep Set — 4 Cotton Nighties',
-    slug: 'comfort-sleep-set-4-cotton-nighties',
-    comboPrice: 1399,
-    originalPrice: 2200,
-    images: ['https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80'],
-    description: 'Ultra-soft 100% breathable cotton daily nighties. Color variety pack with durable seams and roomy fit.',
-  },
-];
-
 async function getData() {
   try {
     await dbConnect();
@@ -264,8 +244,8 @@ async function getData() {
         .sort({ createdAt: -1 })
         .limit(FEATURED_LIMIT)
         .lean(),
-      Review.find({ isApproved: true, isFeatured: true }).populate('product', 'name').limit(10).lean(),
-      Combo.find({ isActive: true }).limit(6).lean(),
+      Review.find({ $or: [{ status: 'approved' }, { isApproved: true }], isFeatured: true }).populate('product', 'name').limit(10).lean(),
+      Combo.find({ isActive: true }).sort({ createdAt: -1 }).limit(6).lean(),
       Category.find({ isActive: true, parent: null }).sort({ sortOrder: 1, name: 1 }).limit(10).lean(),
       Reel.find({ isActive: true })
         .sort({ sortOrder: 1, createdAt: -1 })
@@ -309,7 +289,7 @@ export default async function HomePage() {
 
   // Use dynamic products if in DB, otherwise use authentic sample boutique products
   const displayProducts = dbArrivals && dbArrivals.length > 0 ? dbArrivals : SAMPLE_PRODUCTS_READY;
-  const displayCombos = dbCombos && dbCombos.length > 0 ? dbCombos : SAMPLE_COMBOS;
+  const displayCombos = dbCombos || [];
 
   return (
     <div className="overflow-x-hidden bg-[#FFF4F3]">
@@ -478,9 +458,12 @@ export default async function HomePage() {
                     className="object-cover object-top"
                   />
                 </div>
-                <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#12233F] px-6 py-2.5 text-white shadow-xl animate-float">
-                  <span className="font-display font-bold">Jai Womens World</span>
-                  <span className="ml-2 text-sm text-[#F6D573]">Tiruvannamalai</span>
+                <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 z-20 flex justify-center w-max max-w-[92vw]">
+                  <div className="inline-flex items-center justify-center whitespace-nowrap rounded-full bg-[#12233F] px-4 py-2 sm:px-6 sm:py-2.5 text-white shadow-xl animate-float border border-[#F6D573]/30">
+                    <span className="font-display font-bold text-xs sm:text-base tracking-wide text-white">Jai Womens World</span>
+                    <span className="mx-1.5 text-xs sm:text-sm text-[#F6D573]/80">•</span>
+                    <span className="text-[11px] sm:text-sm text-[#F6D573] font-medium tracking-normal">Tiruvannamalai</span>
+                  </div>
                 </div>
               </div>
             </Reveal>

@@ -43,6 +43,7 @@ const ProductSchema = new mongoose.Schema(
     sku: { type: String, required: true, unique: true, trim: true, uppercase: true },
     description: { type: String, default: '' },
     category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
+    gender: { type: String, default: 'Women' },
     fabric: { type: String, default: '' },
     tags: [{ type: String }],
     variants: [VariantSchema],
