@@ -4,7 +4,7 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Heart, Star, ShoppingBag, ChevronDown, Sparkles, RotateCcw } from 'lucide-react';
+import { Heart, Star, ShoppingBag, ChevronDown, Sparkles, RotateCcw, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatINR } from '@/lib/utils';
 import { useWishlist } from '@/components/WhishlistContext';
@@ -124,7 +124,7 @@ function ProductCard({ product, priority = false }) {
       return false;
     }
     addItem(buildPayload());
-    toast.success('Added to bag');
+    toast.success('Added to cart');
     return true;
   }
 
@@ -135,8 +135,7 @@ function ProductCard({ product, priority = false }) {
   const stop = (e) => e.stopPropagation();
 
   // Mobile / Tablet 3D Flip Handler
-  const handleCardClick = (e) => {
-    // Only trigger 3D flip on mobile/tablet screens (< 1024px)
+  const handleFlipClick = (e) => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       e.preventDefault();
       e.stopPropagation();
@@ -162,15 +161,13 @@ function ProductCard({ product, priority = false }) {
         <div
           className="flip-card-front gold-frame shadow-hanger transition-shadow duration-500 group-hover/card:shadow-glow bg-white"
           style={{ borderWidth: 2.5 }}
-          onClick={handleCardClick}
         >
-          {/* Photo */}
+          {/* Photo (tapping navigates directly to product details) */}
           <Link
             href={productHref}
             prefetch={false}
             aria-label={product.name}
             className="absolute inset-0 block"
-            onClick={handleCardClick}
           >
             <Image
               src={image}
@@ -225,10 +222,12 @@ function ProductCard({ product, priority = false }) {
 
           {/* Default info panel */}
           <div
-            className="hc-default absolute inset-x-2.5 bottom-2.5 z-10 rounded-[20px] bg-[#FFF4F3]/95 backdrop-blur-sm border border-white px-3.5 pt-2.5 pb-3 shadow-[0_10px_30px_-12px_rgba(107,24,56,.5)]"
+            className="hc-default absolute inset-x-2.5 bottom-2.5 z-10 rounded-[20px] bg-[#FFF4F3]/95 backdrop-blur-sm border border-white px-3.5 pt-2.5 pb-3 shadow-[0_10px_30px_-12px_rgba(107,24,56,.5)] cursor-pointer"
+            onClick={handleFlipClick}
           >
-            <Link href={productHref} prefetch={false} className="block" onClick={handleCardClick}>
-              <h3 className="font-display font-bold text-[#12233F] text-[15px] sm:text-lg leading-tight line-clamp-1">
+            {/* Title link navigates directly to product details */}
+            <Link href={productHref} prefetch={false} className="block group/title" onClick={stop}>
+              <h3 className="font-display font-bold text-[#12233F] text-[15px] sm:text-lg leading-tight line-clamp-1 group-hover/title:text-[#6B1838] transition-colors">
                 {product.name}
               </h3>
             </Link>
@@ -259,13 +258,16 @@ function ProductCard({ product, priority = false }) {
               )}
             </div>
 
-            {/* Mobile tap indicator */}
-            <div
-              className="lg:hidden absolute -top-3 right-4 px-2 py-0.5 rounded-full bg-[#6B1838] text-white flex items-center gap-1 text-[10px] font-medium shadow-md"
+            {/* Mobile tap to flip button */}
+            <button
+              type="button"
+              onClick={handleFlipClick}
+              className="lg:hidden absolute -top-3 right-3 sm:right-4 px-2 py-0.5 rounded-full bg-[#6B1838] text-white flex items-center gap-1 text-[10px] font-medium shadow-md active:scale-95 cursor-pointer z-20"
+              aria-label="Tap to flip card"
             >
               <span>Tap to flip</span>
               <RotateCcw size={10} />
-            </div>
+            </button>
           </div>
 
           {/* ── Desktop Hover Panel (hidden on mobile, slides up on desktop hover) ── */}
@@ -394,7 +396,7 @@ function ProductCard({ product, priority = false }) {
 
         {/* ══════════════ BACK FACE (Mobile 3D Flip Details) ══════════════ */}
         <div
-          className="flip-card-back gold-frame shadow-hanger flex flex-col justify-between p-3.5 sm:p-4 text-white"
+          className="flip-card-back gold-frame shadow-hanger flex flex-col justify-between p-2.5 sm:p-3 text-white overflow-hidden select-none"
           style={{
             borderWidth: 2.5,
             background: 'linear-gradient(165deg, #7A1D41 0%, #4A0F28 60%, #300819 100%)',
@@ -402,63 +404,73 @@ function ProductCard({ product, priority = false }) {
           onClick={handleCloseFlip}
         >
           {/* Top Bar: Sparkles badge + Flip-back Close button */}
-          <div className="flex items-center justify-between" onClick={stop}>
-            <span className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#F6D573] flex items-center gap-1">
-              <Sparkles size={11} /> Quick Select
+          <div className="flex items-center justify-between shrink-0" onClick={stop}>
+            <span className="text-[9.5px] uppercase tracking-[0.18em] font-semibold text-[#F6D573] flex items-center gap-1">
+              <Sparkles size={10} /> Quick Select
             </span>
             <button
               type="button"
               onClick={handleCloseFlip}
-              className="w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 active:scale-90 text-white flex items-center justify-center transition-all border border-white/20 shadow-xs"
+              className="w-6 h-6 rounded-full bg-white/15 hover:bg-white/25 active:scale-90 text-white flex items-center justify-center transition-all border border-white/20 shadow-xs cursor-pointer"
               aria-label="Flip back to front"
               title="Flip back"
             >
-              <ChevronDown size={16} />
+              <ChevronDown size={14} />
             </button>
           </div>
 
-          {/* Middle Content */}
-          <div className="flex-1 flex flex-col justify-center py-1">
-            {/* Product Name */}
-            <h3 className="font-display font-bold text-white text-[14px] sm:text-base leading-tight line-clamp-2">
-              {product.name}
-            </h3>
-
-            {/* Rating & Reviews */}
-            <div className="mt-1 flex items-center gap-1.5 text-[11px] sm:text-xs text-white/90">
-              {product.rating > 0 && product.reviewCount > 0 ? (
-                <>
-                  <Star size={12} className="text-[#F5A524] fill-[#F5A524]" />
-                  <span className="font-semibold">{product.rating.toFixed(1)}</span>
-                  <span className="text-white/70">({product.reviewCount} reviews)</span>
-                </>
-              ) : (
-                <span className="text-white/75 font-normal">No ratings yet</span>
-              )}
+          {/* Middle Content: fits without vertical overflow */}
+          <div className="flex-1 min-h-0 flex flex-col justify-evenly py-0.5 overflow-hidden">
+            {/* Product Name & View Details link */}
+            <div onClick={stop}>
+              <Link href={productHref} onClick={stop} className="block group/title">
+                <h3 className="font-display font-bold text-white text-xs sm:text-sm leading-tight line-clamp-2 group-hover/title:text-[#F6D573] transition-colors">
+                  {product.name}
+                </h3>
+              </Link>
+              <Link
+                href={productHref}
+                onClick={stop}
+                className="inline-flex items-center gap-0.5 text-[9.5px] text-[#F6D573] hover:underline font-medium mt-0.5 w-fit"
+              >
+                <span>View Details</span>
+                <ArrowRight size={9} />
+              </Link>
             </div>
 
-            {/* Price & Savings */}
-            <div className="mt-1.5 flex items-baseline gap-2">
-              <span className="font-display font-bold text-[#F6D573] text-base sm:text-lg leading-none">
-                {formatINR(price)}
-              </span>
-              {hasOffer && (
-                <span className="text-[11px] text-white/60 line-through">
-                  {formatINR(compareAt)}
+            {/* Rating & Price Row */}
+            <div className="flex items-center justify-between gap-1 py-0.5" onClick={stop}>
+              <div className="flex items-baseline gap-1.5 flex-wrap">
+                <span className="font-display font-bold text-[#F6D573] text-sm sm:text-base leading-none">
+                  {formatINR(price)}
                 </span>
-              )}
-              {hasOffer && (
-                <span className="text-[9.5px] font-semibold px-1.5 py-0.5 rounded bg-[#F4A7BA]/25 text-[#FFD3DE]">
-                  Save {formatINR(compareAt - price)}
-                </span>
+                {hasOffer && (
+                  <>
+                    <span className="text-[10px] text-white/60 line-through">
+                      {formatINR(compareAt)}
+                    </span>
+                    <span className="text-[9px] font-semibold px-1 py-0.2 rounded bg-[#F4A7BA]/25 text-[#FFD3DE]">
+                      Save {formatINR(compareAt - price)}
+                    </span>
+                  </>
+                )}
+              </div>
+              {product.rating > 0 && product.reviewCount > 0 ? (
+                <div className="flex items-center gap-0.5 text-[10px] text-white/90 shrink-0">
+                  <Star size={10} className="text-[#F5A524] fill-[#F5A524]" />
+                  <span className="font-semibold">{product.rating.toFixed(1)}</span>
+                  <span className="text-white/65">({product.reviewCount})</span>
+                </div>
+              ) : (
+                <span className="text-[9.5px] text-white/60 shrink-0">Boutique Edit</span>
               )}
             </div>
 
             {/* Color Variants (if any) */}
             {variants.length > 1 && (
-              <div className="mt-2 flex items-center gap-2" onClick={stop}>
-                <span className="text-[11px] text-white/80 shrink-0">Color</span>
-                <div className="flex items-center gap-1.5 flex-wrap">
+              <div className="flex items-center gap-1.5 py-0.5" onClick={stop}>
+                <span className="text-[10px] text-white/80 shrink-0">Color:</span>
+                <div className="flex items-center gap-1 flex-wrap">
                   {variants.map((v, i) => (
                     <button
                       key={v._id || i}
@@ -471,8 +483,8 @@ function ProductCard({ product, priority = false }) {
                       title={v.color}
                       aria-label={`Color ${v.color || i + 1}`}
                       aria-pressed={i === vIdx}
-                      className={`w-5 h-5 rounded-full border transition-transform ${
-                        i === vIdx ? 'border-white scale-110 ring-2 ring-[#F4A7BA]/70' : 'border-white/30'
+                      className={`w-4 h-4 rounded-full border transition-transform ${
+                        i === vIdx ? 'border-white scale-110 ring-1 ring-[#F4A7BA]' : 'border-white/30'
                       }`}
                       style={{ background: v.colorHex && v.colorHex !== '#000000' ? v.colorHex : '#F4A7BA' }}
                     />
@@ -483,12 +495,12 @@ function ProductCard({ product, priority = false }) {
 
             {/* Size Selector */}
             {sizes.length > 0 && (
-              <div className="mt-2" onClick={stop}>
-                <div className="flex items-center justify-between text-[11px] text-white/85 font-medium mb-1">
+              <div className="py-0.5" onClick={stop}>
+                <div className="flex items-center justify-between text-[10px] text-white/85 font-medium mb-1">
                   <span>Select Size:</span>
                   {size && <span className="text-[#F6D573] font-bold">{size}</span>}
                 </div>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1">
                   {sizes.slice(0, 6).map((s) => {
                     const gone = (s.stock || 0) <= 0;
                     const active = size === s.size;
@@ -502,9 +514,9 @@ function ProductCard({ product, priority = false }) {
                           setSize(s.size);
                         }}
                         aria-pressed={active}
-                        className={`min-w-[32px] h-7 px-2 rounded-full text-[11px] font-semibold border transition-all ${
+                        className={`min-w-[28px] h-6 px-1.5 rounded-full text-[10px] font-semibold border transition-all ${
                           active
-                            ? 'bg-white text-[#6B1838] border-white shadow-sm font-bold scale-105'
+                            ? 'bg-white text-[#6B1838] border-white shadow-xs font-bold scale-105'
                             : gone
                             ? 'border-white/15 text-white/30 line-through cursor-not-allowed'
                             : 'border-white/40 text-white hover:bg-white/20 active:scale-95'
@@ -519,8 +531,8 @@ function ProductCard({ product, priority = false }) {
             )}
           </div>
 
-          {/* Action Buttons: Add to Cart & Buy Now */}
-          <div className="space-y-1.5 pt-1" onClick={stop}>
+          {/* Action Buttons: Cart & Buy Now */}
+          <div className="shrink-0 pt-1 mt-auto" onClick={stop}>
             <div className="grid grid-cols-2 gap-1.5">
               <button
                 type="button"
@@ -529,10 +541,10 @@ function ProductCard({ product, priority = false }) {
                   e.stopPropagation();
                   quickAdd();
                 }}
-                className="flex items-center justify-center gap-1 h-9 rounded-full border border-white/70 text-white font-semibold text-[11.5px] hover:bg-white hover:text-[#6B1838] active:scale-95 transition-all disabled:opacity-40"
+                className="flex items-center justify-center gap-1 h-8 rounded-full border border-white/60 bg-[#6B1838]/40 hover:bg-[#6B1838]/70 active:scale-95 text-white font-semibold text-[11px] whitespace-nowrap transition-all disabled:opacity-40 cursor-pointer"
               >
-                <ShoppingBag size={13} />
-                <span>Add to Bag</span>
+                <ShoppingBag size={12} strokeWidth={2} />
+                <span>Cart</span>
               </button>
 
               <button
@@ -542,7 +554,7 @@ function ProductCard({ product, priority = false }) {
                   e.stopPropagation();
                   handleBuyNow();
                 }}
-                className="relative overflow-hidden shine-sweep flex items-center justify-center gap-1 h-9 rounded-full text-[11.5px] font-bold text-[#4A0F28] bg-gradient-to-r from-[#F6D573] via-[#E9B84F] to-[#D9A441] shadow-md hover:brightness-105 active:scale-95 transition-all disabled:opacity-40"
+                className="relative overflow-hidden shine-sweep flex items-center justify-center gap-1 h-8 rounded-full text-[11px] font-bold text-[#4A0F28] bg-gradient-to-r from-[#F6D573] via-[#E9B84F] to-[#D9A441] shadow-xs hover:brightness-105 active:scale-95 whitespace-nowrap transition-all disabled:opacity-40 cursor-pointer"
               >
                 <span>Buy Now</span>
               </button>
@@ -552,10 +564,10 @@ function ProductCard({ product, priority = false }) {
             <button
               type="button"
               onClick={handleCloseFlip}
-              className="w-full text-center text-[10px] text-white/70 hover:text-white flex items-center justify-center gap-1 py-0.5 transition-colors cursor-pointer"
+              className="w-full text-center text-[9px] text-white/70 hover:text-white flex items-center justify-center gap-0.5 pt-1 cursor-pointer transition-colors"
               aria-label="Close details"
             >
-              <ChevronDown size={12} />
+              <ChevronDown size={11} />
               <span>Tap to flip back</span>
             </button>
           </div>
