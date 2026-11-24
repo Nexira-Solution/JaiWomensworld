@@ -75,7 +75,7 @@ export default async function Footer() {
         <path d="M0 60 L0 30 C240 -10 480 70 760 30 C1020 -6 1240 10 1440 34 L1440 60 Z" fill="#12233F" />
         <path d="M0 30 C240 -10 480 70 760 30 C1020 -6 1240 10 1440 34" fill="none" stroke="#D9A441" strokeOpacity=".7" strokeWidth="2" />
       </svg>
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-16 pb-12">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-16 pb-28 sm:pb-12">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-12">
           
           {/* Brand Column — Connected to Admin Settings */}

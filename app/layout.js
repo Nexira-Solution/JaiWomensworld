@@ -198,7 +198,6 @@ export default function RootLayout({ children }) {
         <CartProvider>
           <WishlistProvider>
             {children}
-            <div className="md:hidden h-14" />
           </WishlistProvider>
         </CartProvider>
 

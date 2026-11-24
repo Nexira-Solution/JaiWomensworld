@@ -33,7 +33,7 @@ export default function BannerCarousel({ banners = [], watchHref }) {
   // Active Admin Banner Carousel
   return (
     <section className="relative w-full overflow-hidden bg-[#FFF4F3] border-b border-[#F5D5DB]">
-      <div className="relative w-full grid sm:block sm:aspect-[21/9] lg:aspect-[2.8/1] min-h-[220px] sm:min-h-[380px]">
+      <div className="relative w-full grid">
         {banners.map((b, i) => {
           const isActive = i === index;
           const isFirst = i === 0;
@@ -43,27 +43,29 @@ export default function BannerCarousel({ banners = [], watchHref }) {
             <Link
               key={b._id}
               href={b.link || '#'}
-              className={`col-start-1 row-start-1 block w-full sm:absolute sm:inset-0 transition-opacity duration-700 ease-in-out ${
+              className={`col-start-1 row-start-1 block w-full transition-opacity duration-700 ease-in-out ${
                 isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
               } ${!b.link ? 'cursor-default' : 'cursor-pointer'}`}
               tabIndex={isActive ? 0 : -1}
               aria-hidden={!isActive}
             >
               {shouldLoad && (
-                <div className="relative w-full h-full">
+                <div className="relative w-full">
                   <img
                     src={b.image}
                     alt={b.title || "Jai Womens World Fashion Collection"}
                     loading={isFirst ? 'eager' : 'lazy'}
                     fetchPriority={isFirst ? 'high' : 'auto'}
                     decoding={isFirst ? 'sync' : 'async'}
-                    className="block w-full h-auto sm:absolute sm:inset-0 sm:h-full object-cover object-center"
+                    className="block w-full h-auto object-contain object-top"
                   />
-                  {/* Subtle boutique overlay for contrast */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent pointer-events-none" />
+                  {/* Subtle boutique overlay for contrast — desktop only */}
+                  {b.title && (
+                    <div className="hidden sm:block absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent pointer-events-none" />
+                  )}
 
                   {b.title && (
-                    <div className="absolute bottom-6 sm:bottom-10 left-6 sm:left-12 z-20 max-w-lg text-white space-y-1">
+                    <div className="hidden sm:block absolute bottom-6 sm:bottom-10 left-6 sm:left-12 z-20 max-w-lg text-white space-y-1">
                       <span className="text-[10px] tracking-[0.25em] uppercase font-semibold text-[#F4A7BA] drop-shadow-sm">
                         Featured Collection
                       </span>

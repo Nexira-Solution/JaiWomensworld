@@ -111,7 +111,7 @@ export default function CategoryShowcase({ categories = [] }) {
 
   return (
     <section
-      className="relative overflow-hidden pt-14 sm:pt-20 pb-28 sm:pb-36 bg-gradient-to-b from-[#FFE9EC] via-[#FFF1F1] to-[#FFF4F3]"
+      className="relative overflow-hidden pt-8 sm:pt-16 pb-28 sm:pb-36 bg-gradient-to-b from-[#FFE9EC] via-[#FFF1F1] to-[#FFF4F3]"
       aria-labelledby="shop-by-category"
     >
       <BlossomBranch className="w-[120px] sm:w-[300px] lg:w-[400px] opacity-95" />

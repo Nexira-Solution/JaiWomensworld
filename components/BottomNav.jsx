@@ -37,14 +37,10 @@ export default function BottomNav() {
     href === '/' ? pathname === '/' : pathname.startsWith(href);
 
   return (
-    <>
-      {/* Spacer so page content isn't hidden behind the fixed mobile nav */}
-      <div className="md:hidden h-20" />
-
-      <nav
-        className="md:hidden fixed bottom-0 inset-x-0 z-50 px-3 pb-[max(10px,env(safe-area-inset-bottom))]"
-        aria-label="Quick navigation"
-      >
+    <nav
+      className="md:hidden fixed bottom-0 inset-x-0 z-50 px-3 pb-[max(10px,env(safe-area-inset-bottom))]"
+      aria-label="Quick navigation"
+    >
         <div className="mx-auto max-w-md flex items-center justify-between rounded-full bg-white/90 backdrop-blur-xl border border-white shadow-[0_14px_34px_-10px_rgba(107,24,56,.5)] px-2 py-1.5">
           {items.map(({ href, label, icon: Icon, badge }) => {
             const active = isActive(href);
@@ -73,6 +69,5 @@ export default function BottomNav() {
           })}
         </div>
       </nav>
-    </>
   );
 }

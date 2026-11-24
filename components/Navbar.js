@@ -285,7 +285,7 @@ export default function Navbar({ categories = [], products = [], whatsappNumber 
     <>
       <CouponMarquee />
 
-      <header className="sticky top-0 z-50 bg-[#FFF4F3]/85 backdrop-blur-xl border-b border-[#F5D5DB]/70 shadow-[0_10px_30px_-22px_rgba(107,24,56,.45)] transition-all">
+      <header className="sticky top-0 z-50 bg-[#FFF4F3]/95 backdrop-blur-xl border-b border-[#F5D5DB] shadow-[0_4px_20px_-8px_rgba(107,24,56,.12)] transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-[68px] sm:h-[80px]">
             
@@ -313,9 +313,6 @@ export default function Navbar({ categories = [], products = [], whatsappNumber 
                 <div className="hidden min-[400px]:flex flex-col">
                   <span className="font-display text-lg sm:text-[22px] font-bold tracking-[0.03em] text-[#12233F] leading-none">
                     JAI WOMENS WORLD
-                  </span>
-                  <span className="text-[11px] tracking-wide text-[#B02F5E] font-medium mt-1">
-                    Boutique &middot; Tiruvannamalai
                   </span>
                 </div>
               </Link>
