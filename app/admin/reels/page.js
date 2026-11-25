@@ -6,12 +6,16 @@ import { Plus, Trash2, X, Upload, Loader2, Video, Pencil } from 'lucide-react';
 
 const emptyForm = { title: '', videoUrl: '', thumbnail: '', instagramLink: '', product: '', sortOrder: 0, isActive: true };
 
-// Tiles on the homepage are ~180px wide and autoplay, so keep videos small.
-const MAX_VIDEO_MB = 15;
-const MAX_IMAGE_MB = 10;
+// Keep these in sync with MAX_*_BYTES in app/api/upload/sign/route.js
+const MAX_VIDEO_MB = 50;
+const MAX_IMAGE_MB = 10; // checked AFTER the image is shrunk
+
+const VIDEO_EXT = { mp4: 'video/mp4', webm: 'video/webm' };
+const IMAGE_EXT = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif' };
+
+const mb = (bytes) => (bytes / 1024 / 1024).toFixed(1);
 
 // Read a response as JSON without crashing when the server sends plain text
-// (Vercel returns text like "Request Entity Too Large" for oversized bodies).
 async function safeJson(res) {
   try {
     return await res.json();
@@ -20,13 +24,19 @@ async function safeJson(res) {
   }
 }
 
-// Files go straight from the browser to Cloudflare R2 using a presigned URL from
-// /api/upload/sign, so they are not limited by Vercel's 4.5 MB request cap.
-async function uploadDirect(file, folder, onProgress) {
+// Some browsers return an empty file.type. Fall back to the file extension.
+function getContentType(file) {
+  if (file.type) return file.type;
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  return VIDEO_EXT[ext] || IMAGE_EXT[ext] || '';
+}
+
+// Files go straight from the browser to Cloudflare R2 using a presigned URL
+async function uploadDirect(file, contentType, folder, onProgress) {
   const signRes = await fetch('/api/upload/sign', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ folder, contentType: file.type, size: file.size }),
+    body: JSON.stringify({ folder, contentType, size: file.size }),
   });
   const sign = await safeJson(signRes);
   if (!signRes.ok) throw new Error(sign.error || `Could not start upload (server replied ${signRes.status})`);
@@ -34,22 +44,25 @@ async function uploadDirect(file, folder, onProgress) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('PUT', sign.uploadUrl);
-    xhr.setRequestHeader('Content-Type', file.type);
+    xhr.setRequestHeader('Content-Type', contentType); // must match the signed type
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
     };
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) resolve(sign.publicUrl);
+      else if (xhr.status === 403) reject(new Error('Upload rejected (403). The link may have expired or R2 keys/signature are wrong.'));
       else reject(new Error(`Upload failed (${xhr.status})`));
     };
-    // A network error here is most often a missing CORS rule on the R2 bucket
-    xhr.onerror = () => reject(new Error('Upload blocked. Check the R2 bucket CORS settings.'));
+    xhr.onerror = () =>
+      reject(new Error(
+        `Upload blocked. Usually R2 CORS: add this site (${window.location.origin}) to AllowedOrigins. Can also be a network drop.`
+      ));
+    xhr.ontimeout = () => reject(new Error('Upload timed out. Try a smaller video or better connection.'));
     xhr.send(file);
   });
 }
 
 // Downscale big photos to 1600px wide WebP in the browser.
-// Falls back to the original file if the browser can't decode or re-encode it.
 async function shrinkImage(file, maxWidth = 1600) {
   try {
     const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
@@ -77,8 +90,15 @@ function UploadSlot({ value, accept, folder, placeholder, icon: Icon, preview: P
     if (!file) return;
 
     const limitMb = isVideo ? MAX_VIDEO_MB : MAX_IMAGE_MB;
-    if (file.size > limitMb * 1024 * 1024) {
-      toast.error(`File is too large (max ${limitMb} MB)`);
+    const MAX_PICK_MB = 40; // sanity cap on raw photos before shrinking
+
+    // Videos are checked now. Images are checked after shrinking.
+    if (isVideo && file.size > limitMb * 1024 * 1024) {
+      toast.error(`Video is ${mb(file.size)} MB. Max is ${limitMb} MB. Compress it and try again.`);
+      return;
+    }
+    if (!isVideo && file.size > MAX_PICK_MB * 1024 * 1024) {
+      toast.error(`Image is ${mb(file.size)} MB, too large to process.`);
       return;
     }
 
@@ -86,11 +106,17 @@ function UploadSlot({ value, accept, folder, placeholder, icon: Icon, preview: P
     setProgress(0);
     try {
       const toUpload = isVideo ? file : await shrinkImage(file);
-      const url = await uploadDirect(toUpload, folder, setProgress);
+      if (toUpload.size > limitMb * 1024 * 1024) {
+        throw new Error(`File is ${mb(toUpload.size)} MB. Max is ${limitMb} MB.`);
+      }
+      const contentType = getContentType(toUpload);
+      if (!contentType) throw new Error('Unsupported file type');
+
+      const url = await uploadDirect(toUpload, contentType, folder, setProgress);
       onChange(url);
       toast.success('Uploaded');
     } catch (err) {
-      toast.error(err.message || 'Upload failed');
+      toast.error(err.message || 'Upload failed', { duration: 7000 });
     } finally {
       setUploading(false);
     }
@@ -98,7 +124,6 @@ function UploadSlot({ value, accept, folder, placeholder, icon: Icon, preview: P
 
   return (
     <div className="space-y-1">
-      {/* Click area */}
       <div
         onClick={() => !uploading && fileRef.current?.click()}
         className="w-full h-28 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-brand-magenta transition-colors overflow-hidden relative bg-brand-cream/40"
@@ -120,7 +145,6 @@ function UploadSlot({ value, accept, folder, placeholder, icon: Icon, preview: P
       </div>
       <input ref={fileRef} type="file" accept={accept} className="hidden" onChange={handleFile} />
 
-      {/* Manual URL fallback */}
       <input
         placeholder={`Or paste URL: ${placeholder}`}
         className="w-full border rounded-lg px-3 py-2 text-xs text-brand-ink/60"
@@ -145,7 +169,7 @@ export default function AdminReelsPage() {
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [editingId, setEditingId] = useState(null); // null = creating a new reel
+  const [editingId, setEditingId] = useState(null);
 
   async function load() {
     const [r1, r2] = await Promise.all([fetch('/api/reels?all=true'), fetch('/api/products?limit=200')]);
@@ -236,7 +260,7 @@ export default function AdminReelsPage() {
             </div>
             <div>
               <p className="text-xs font-medium text-brand-ink/60 mb-1">
-                Thumbnail image (shown while loading and in Low Power Mode, up to {MAX_IMAGE_MB} MB)
+                Thumbnail image (shown while loading and in Low Power Mode)
               </p>
               <UploadSlot
                 value={form.thumbnail}
