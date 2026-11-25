@@ -136,8 +136,8 @@ export default async function ComboPage({ params }) {
               </div>
             </div>
 
-            {/* Desktop / tablet inline CTA */}
-            <div className="hidden sm:block mt-8">
+            {/* Action Buttons (Visible on Mobile & Desktop) */}
+            <div className="mt-8">
               <AddComboButton combo={plain} />
               <p className="text-xs text-center mt-2.5" style={{ color: INK_SOFT }}>
                 Combo price applies automatically at checkout
@@ -147,23 +147,6 @@ export default async function ComboPage({ params }) {
         </div>
       )}
 
-      {/* <div className="mt-10 sm:mt-14 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        <div className="flex gap-3 items-start py-3" style={{ borderTop: `1px solid ${LINE}` }}>
-          <RotateCcw size={18} style={{ color: PEACH }} className="shrink-0 mt-0.5" strokeWidth={1.5} />
-          <div>
-            <p className="text-sm" style={{ color: INK }}>7-day returns</p>
-            <p className="text-xs mt-0.5" style={{ color: INK_SOFT }}>Not satisfied? Return within 7 days for a full refund.</p>
-          </div>
-        </div>
-        <div className="flex gap-3 items-start py-3" style={{ borderTop: `1px solid ${LINE}` }}>
-          <Shield size={18} style={{ color: PEACH }} className="shrink-0 mt-0.5" strokeWidth={1.5} />
-          <div>
-            <p className="text-sm" style={{ color: INK }}>100% genuine</p>
-            <p className="text-xs mt-0.5" style={{ color: INK_SOFT }}>Every piece is quality-checked before dispatch.</p>
-          </div>
-        </div>
-      </div> */}
-
       {!isColorPack && plain.originalPrice > plain.comboPrice && (
         <div className="mt-8 sm:mt-10 pt-6 text-center" style={{ borderTop: `1px solid ${LINE}` }}>
           <p className="text-sm" style={{ color: INK_SOFT }}>
@@ -171,15 +154,6 @@ export default async function ComboPage({ params }) {
             <span className="line-through">{formatINR(plain.originalPrice)}</span> — get this combo for just{' '}
             <span className="font-semibold" style={{ color: SAGE }}>{formatINR(plain.comboPrice)}</span>
           </p>
-        </div>
-      )}
-
-      {!isColorPack && (
-        <div
-          className="sm:hidden fixed bottom-0 left-0 right-0 z-40 px-4 py-3"
-          style={{ background: PAPER, borderTop: `1px solid ${LINE}` }}
-        >
-          <AddComboButton combo={plain} />
         </div>
       )}
 

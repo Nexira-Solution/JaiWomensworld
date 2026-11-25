@@ -462,13 +462,13 @@ export default function ColorPackSelector({ combo }) {
           )}
         </div>
 
-        {/* Desktop inline CTA */}
-        <div className="hidden sm:block mt-8">
+        {/* Action Buttons (Visible on Mobile & Desktop) */}
+        <div className="mt-8">
           <div className="flex gap-2.5">
             <button
               onClick={handleAddToCart}
               disabled={!canAdd}
-              className="flex-1 flex items-center justify-center gap-2 text-sm font-medium py-3 rounded-full active:scale-[0.98] transition-transform disabled:cursor-not-allowed"
+              className="flex-1 flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold uppercase tracking-wider py-3 rounded-full active:scale-[0.98] transition-transform disabled:cursor-not-allowed"
               style={{
                 border: `1px solid ${canAdd ? TEAL : LINE}`,
                 color: canAdd ? TEAL : INK_SOFT,
@@ -480,10 +480,10 @@ export default function ColorPackSelector({ combo }) {
             <button
               onClick={handleBuyNow}
               disabled={!canAdd}
-              className="flex-1 flex items-center justify-center gap-2 text-sm font-medium py-3 rounded-full transition-transform active:scale-[0.98] disabled:cursor-not-allowed"
+              className="flex-1 flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold uppercase tracking-wider py-3 rounded-full transition-transform active:scale-[0.98] disabled:cursor-not-allowed text-white"
               style={{
                 background: canAdd ? TEAL : LINE,
-                color: canAdd ? PAPER : INK_SOFT,
+                color: canAdd ? '#ffffff' : INK_SOFT,
               }}
             >
               <Zap size={16} fill="currentColor" strokeWidth={0} /> Buy now
@@ -492,41 +492,6 @@ export default function ColorPackSelector({ combo }) {
           {helperText && (
             <p className="text-xs text-center mt-2.5" style={{ color: INK_SOFT }}>{helperText}</p>
           )}
-        </div>
-      </div>
-
-      {/* Mobile sticky CTA */}
-      <div
-        className="sm:hidden fixed bottom-0 left-0 right-0 z-40 px-4 py-3"
-        style={{ background: PAPER, borderTop: `1px solid ${LINE}` }}
-      >
-        {helperText && (
-          <p className="text-xs text-center mb-2" style={{ color: INK_SOFT }}>{helperText}</p>
-        )}
-        <div className="flex gap-2.5">
-          <button
-            onClick={handleAddToCart}
-            disabled={!canAdd}
-            className="flex-1 flex items-center justify-center gap-2 text-sm font-medium py-3 rounded-full active:scale-[0.98] transition-transform disabled:cursor-not-allowed"
-            style={{
-              border: `1px solid ${canAdd ? TEAL : LINE}`,
-              color: canAdd ? TEAL : INK_SOFT,
-              background: PAPER,
-            }}
-          >
-            <ShoppingBag size={16} strokeWidth={1.75} /> Add
-          </button>
-          <button
-            onClick={handleBuyNow}
-            disabled={!canAdd}
-            className="flex-1 flex items-center justify-center gap-2 text-sm font-medium py-3 rounded-full transition-transform active:scale-[0.98] disabled:cursor-not-allowed"
-            style={{
-              background: canAdd ? TEAL : LINE,
-              color: canAdd ? PAPER : INK_SOFT,
-            }}
-          >
-            <Zap size={16} fill="currentColor" strokeWidth={0} /> Buy now
-          </button>
         </div>
       </div>
     </div>

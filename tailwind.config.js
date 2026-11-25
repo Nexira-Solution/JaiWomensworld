@@ -67,8 +67,8 @@ module.exports = {
         body: ['var(--font-body)', 'Inter', '-apple-system', 'Segoe UI', 'sans-serif'],
       },
       boxShadow: {
-        glow: '0 0 0 2px rgba(217,164,65,.55), 0 18px 40px -12px rgba(176,47,94,.35)',
-        hanger: '0 22px 45px -18px rgba(107,24,56,.45)',
+        glow: '0 0 0 2px rgba(217,164,65,.4), 0 10px 25px -8px rgba(18, 35, 63, 0.1)',
+        hanger: '0 8px 24px -10px rgba(18, 35, 63, 0.12)',
         boutique: '0 10px 30px -10px rgba(18, 35, 63, 0.08)',
         soft: '0 8px 30px -8px rgba(18, 35, 63, 0.06)',
         card: '0 4px 20px -2px rgba(18, 35, 63, 0.05)',

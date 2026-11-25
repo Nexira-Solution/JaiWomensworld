@@ -206,15 +206,8 @@ body {
   .reveal { opacity: 1; transform: none; }
 }
 
-/* ---------- ProductCard: hover (desktop) / tap (touch) expansion ---------- */
-.hc-panel { transform: translateY(104%); transition: transform .55s cubic-bezier(.22,.8,.24,1); }
-.hc-default { transition: opacity .3s ease, transform .45s cubic-bezier(.22,.8,.24,1); }
-
-@media (hover: hover) and (pointer: fine) {
-  .hc:hover .hc-panel, .hc:has(.hc-panel :focus-visible) .hc-panel { transform: translateY(0); }
-  .hc:hover .hc-default, .hc:has(.hc-panel :focus-visible) .hc-default { opacity: 0; transform: translateY(14px); pointer-events: none; }
-  .hc-toggle, .hc-close { display: none; }
-}
+/* ---------- ProductCard: Default Info Panel ---------- */
+.hc-default { transition: opacity .3s ease, transform .3s ease; }
 
 /* ---------- Mobile/Tablet 3D Flip Card ---------- */
 .flip-card-wrapper {

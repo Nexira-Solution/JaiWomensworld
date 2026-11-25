@@ -1,14 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import Reveal from '@/components/Reveal';
 import { LotusDivider } from '@/components/Decor';
 
 /**
- * "You may also like" rail: swipeable on phones, arrow buttons on desktop.
+ * "You may also like" rail: shows up to 4 related products.
  * `items` must already be card-shaped (see lib/cardProduct.js).
  */
 export default function RelatedProducts({
@@ -17,35 +16,9 @@ export default function RelatedProducts({
   subtitle = 'Handpicked pieces that go beautifully with this one',
   viewAllHref = '/products',
 }) {
-  const railRef = useRef(null);
-  const [canPrev, setCanPrev] = useState(false);
-  const [canNext, setCanNext] = useState(false);
+  const displayItems = (items || []).slice(0, 4);
 
-  const update = useCallback(() => {
-    const el = railRef.current;
-    if (!el) return;
-    setCanPrev(el.scrollLeft > 8);
-    setCanNext(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
-  }, []);
-
-  useEffect(() => {
-    update();
-    const el = railRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [update, items.length]);
-
-  function scrollBy(dir) {
-    const el = railRef.current;
-    if (!el) return;
-    const card = el.querySelector('[data-card]');
-    const step = (card?.offsetWidth || 260) + 20;
-    el.scrollBy({ left: dir * step * 2, behavior: 'smooth' });
-  }
-
-  if (!items.length) return null;
+  if (!displayItems.length) return null;
 
   return (
     <section className="relative mt-16 sm:mt-24" aria-labelledby="related-title">
@@ -58,32 +31,10 @@ export default function RelatedProducts({
       </Reveal>
 
       <div className="relative mt-10">
-        {/* desktop arrows */}
-        <button
-          type="button"
-          onClick={() => scrollBy(-1)}
-          disabled={!canPrev}
-          aria-label="Previous products"
-          className="hidden md:flex absolute -left-4 lg:-left-6 top-1/2 -translate-y-1/2 z-30 h-12 w-12 items-center justify-center rounded-full bg-white text-[#12233F] shadow-lg border border-[#F5D5DB] transition hover:bg-[#B02F5E] hover:text-white disabled:opacity-0 disabled:pointer-events-none"
-        >
-          <ChevronLeft size={22} />
-        </button>
-        <button
-          type="button"
-          onClick={() => scrollBy(1)}
-          disabled={!canNext}
-          aria-label="Next products"
-          className="hidden md:flex absolute -right-4 lg:-right-6 top-1/2 -translate-y-1/2 z-30 h-12 w-12 items-center justify-center rounded-full bg-white text-[#12233F] shadow-lg border border-[#F5D5DB] transition hover:bg-[#B02F5E] hover:text-white disabled:opacity-0 disabled:pointer-events-none"
-        >
-          <ChevronRight size={22} />
-        </button>
-
         <div
-          ref={railRef}
-          onScroll={update}
           className="no-scrollbar flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-1 pb-8 pt-2 -mx-1"
         >
-          {items.map((p) => (
+          {displayItems.map((p) => (
             <div
               key={p._id}
               data-card

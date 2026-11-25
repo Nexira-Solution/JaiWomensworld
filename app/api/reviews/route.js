@@ -24,10 +24,26 @@ export async function GET(req) {
 
   if (orderId) {
     if (!mongoose.isValidObjectId(orderId)) {
-      return NextResponse.json({ reviewedProductIds: [] });
+      return NextResponse.json({ reviewedProductIds: [], reviewsByProduct: {} });
     }
-    const reviews = await Review.find({ order: orderId }).select('product');
-    return NextResponse.json({ reviewedProductIds: reviews.map((r) => String(r.product)) });
+    const reviews = await Review.find({ order: orderId }).select('product status rating title comment images');
+    const reviewsByProduct = {};
+    const reviewedProductIds = [];
+    reviews.forEach((r) => {
+      const pId = String(r.product);
+      reviewsByProduct[pId] = {
+        _id: r._id,
+        status: r.status,
+        rating: r.rating,
+        title: r.title,
+        comment: r.comment,
+        images: r.images,
+      };
+      if (r.status !== 'rejected') {
+        reviewedProductIds.push(pId);
+      }
+    });
+    return NextResponse.json({ reviewedProductIds, reviewsByProduct });
   }
 
   // Admin view
@@ -146,12 +162,38 @@ export async function POST(req) {
       );
     }
 
-    // Prevent duplicate reviews for the same order and product
+    // Prevent duplicate reviews for the same order and product (unless rejected, where revision is allowed)
     const existing = await Review.findOne({
       order: matchedOrder._id,
       product: productId,
     });
     if (existing) {
+      if (existing.status === 'rejected') {
+        existing.rating = numRating;
+        existing.title = (title || '').trim();
+        existing.comment = comment.trim();
+        existing.images = Array.isArray(images) ? images.filter((img) => typeof img === 'string') : [];
+        existing.status = 'pending';
+        existing.isApproved = false;
+        await existing.save();
+
+        return NextResponse.json(
+          {
+            review: existing,
+            message:
+              'Thank you for your review! Your feedback has been submitted successfully and is awaiting admin approval.',
+          },
+          { status: 200 }
+        );
+      }
+
+      if (existing.status === 'pending') {
+        return NextResponse.json(
+          { error: 'Your review for this product has already been submitted and is awaiting admin approval.' },
+          { status: 400 }
+        );
+      }
+
       return NextResponse.json(
         { error: 'You have already submitted a review for this product from this order.' },
         { status: 400 }

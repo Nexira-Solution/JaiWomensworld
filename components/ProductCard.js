@@ -159,7 +159,7 @@ function ProductCard({ product, priority = false }) {
       >
         {/* ══════════════ FRONT FACE ══════════════ */}
         <div
-          className="flip-card-front gold-frame shadow-hanger transition-shadow duration-500 group-hover/card:shadow-glow bg-white"
+          className="flip-card-front gold-frame overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 bg-white"
           style={{ borderWidth: 2.5 }}
         >
           {/* Photo (tapping navigates directly to product details) */}
@@ -180,7 +180,6 @@ function ProductCard({ product, priority = false }) {
                 outOfStock ? 'grayscale opacity-80' : ''
               }`}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#4A0F28]/25 via-transparent to-transparent" />
           </Link>
 
           {/* Hanging discount tag */}
@@ -190,7 +189,7 @@ function ProductCard({ product, priority = false }) {
               style={{ '--tilt': '-6deg' }}
             >
               <span className="block mx-auto w-px h-3 bg-[#D9A441]" />
-              <div className="relative rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-center font-display font-bold leading-[1.05] text-white bg-gradient-to-br from-[#8A2048] to-[#5C1330] border border-dashed border-white/40 shadow-lg">
+              <div className="relative rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-center font-display font-bold leading-[1.05] text-white bg-gradient-to-br from-[#8A2048] to-[#5C1330] border border-dashed border-white/40 shadow-sm">
                 {outOfStock ? (
                   <span className="text-[11px] sm:text-xs">Sold<br />out</span>
                 ) : (
@@ -210,7 +209,7 @@ function ProductCard({ product, priority = false }) {
             onClick={handleWishlistClick}
             aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
             aria-pressed={wishlisted}
-            className="absolute top-3 right-3 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-white shadow-md transition-transform active:scale-90 hover:scale-110"
+            className="absolute top-3 right-3 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-white shadow-sm transition-transform active:scale-90 hover:scale-110"
           >
             <Heart
               className={`w-[18px] h-[18px] transition-all ${wishlisted ? 'animate-pop-in' : ''}`}
@@ -222,7 +221,7 @@ function ProductCard({ product, priority = false }) {
 
           {/* Default info panel */}
           <div
-            className="hc-default absolute inset-x-2.5 bottom-2.5 z-10 rounded-[20px] bg-[#FFF4F3]/95 backdrop-blur-sm border border-white px-3.5 pt-2.5 pb-3 shadow-[0_10px_30px_-12px_rgba(107,24,56,.5)] cursor-pointer"
+            className="hc-default absolute inset-x-2.5 bottom-2.5 z-10 rounded-[20px] bg-[#FFF4F3]/95 backdrop-blur-sm border border-white px-3.5 pt-2.5 pb-3 shadow-sm cursor-pointer"
             onClick={handleFlipClick}
           >
             {/* Title link navigates directly to product details */}
@@ -262,141 +261,18 @@ function ProductCard({ product, priority = false }) {
             <button
               type="button"
               onClick={handleFlipClick}
-              className="lg:hidden absolute -top-3 right-3 sm:right-4 px-2 py-0.5 rounded-full bg-[#6B1838] text-white flex items-center gap-1 text-[10px] font-medium shadow-md active:scale-95 cursor-pointer z-20"
+              className="lg:hidden absolute -top-3 right-3 sm:right-4 px-2 py-0.5 rounded-full bg-[#6B1838] text-white flex items-center gap-1 text-[10px] font-medium shadow-sm active:scale-95 cursor-pointer z-20"
               aria-label="Tap to flip card"
             >
               <span>Tap to flip</span>
               <RotateCcw size={10} />
             </button>
           </div>
-
-          {/* ── Desktop Hover Panel (hidden on mobile, slides up on desktop hover) ── */}
-          <div
-            className="hc-panel hidden lg:block absolute inset-x-0 bottom-0 z-[15] text-white"
-            onClick={stop}
-          >
-            <div
-              className="relative px-3 sm:px-5 pt-8 sm:pt-11 pb-3 sm:pb-4 bg-gradient-to-b from-[#7A1D41] to-[#4A0F28]"
-              style={{ borderTopLeftRadius: '70% 38px', borderTopRightRadius: '8% 14px' }}
-            >
-              <span
-                className="absolute inset-x-0 top-0 h-[3px] opacity-90"
-                style={{
-                  background: 'linear-gradient(90deg, transparent, #F6D573 25%, #FFE9A6 55%, transparent)',
-                  borderTopLeftRadius: '70% 38px',
-                }}
-              />
-              <Link href={productHref} prefetch={false} className="block pr-2">
-                <h3 className="font-display font-bold text-[15px] sm:text-xl leading-tight line-clamp-1 sm:line-clamp-2">
-                  {product.name}
-                </h3>
-              </Link>
-              {product.description && (
-                <p className="mt-1 text-[13px] text-white/80 leading-snug line-clamp-2">
-                  {product.description}
-                </p>
-              )}
-
-              <div className="mt-1.5 sm:mt-2 flex items-center gap-1.5 text-[11.5px] sm:text-[12.5px]">
-                {product.rating > 0 && product.reviewCount > 0 ? (
-                  <>
-                    <Star size={13} className="text-[#F5A524] fill-[#F5A524]" />
-                    <span className="font-semibold">{product.rating.toFixed(1)}</span>
-                    <span className="text-white/75">({product.reviewCount} Reviews)</span>
-                  </>
-                ) : (
-                  <span className="text-white/75 font-normal">No ratings yet</span>
-                )}
-              </div>
-
-              {lowStock && (
-                <p className="mt-1.5 flex items-center gap-1.5 text-[12px] font-semibold text-[#F6D573]">
-                  <ShoppingBag size={14} /> Only {totalStock} left in stock!
-                </p>
-              )}
-
-              {/* Colours */}
-              {variants.length > 1 && (
-                <div className="mt-2 sm:mt-2.5 flex items-center gap-2">
-                  <span className="text-[12px] text-white/85 w-9">Color</span>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {variants.map((v, i) => (
-                      <button
-                        key={v._id || i}
-                        type="button"
-                        onClick={() => {
-                          setVIdx(i);
-                          setSize('');
-                        }}
-                        title={v.color}
-                        aria-label={`Colour ${v.color || i + 1}`}
-                        aria-pressed={i === vIdx}
-                        className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 ${
-                          i === vIdx ? 'border-white scale-110 ring-2 ring-[#F4A7BA]/60' : 'border-white/30'
-                        }`}
-                        style={{ background: v.colorHex && v.colorHex !== '#000000' ? v.colorHex : '#F4A7BA' }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Sizes */}
-              {sizes.length > 0 && (
-                <div className="mt-2.5 flex items-start gap-2">
-                  <span className="text-[12px] text-white/85 w-9 pt-1.5">Size</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {sizes.slice(0, 7).map((s) => {
-                      const gone = (s.stock || 0) <= 0;
-                      const active = size === s.size;
-                      return (
-                        <button
-                          key={s.size}
-                          type="button"
-                          disabled={gone}
-                          onClick={() => setSize(s.size)}
-                          aria-pressed={active}
-                          className={`min-w-[34px] h-8 px-2.5 rounded-full text-[12px] font-semibold border transition-all ${
-                            active
-                              ? 'bg-white text-[#6B1838] border-white'
-                              : gone
-                              ? 'border-white/15 text-white/30 line-through cursor-not-allowed'
-                              : 'border-white/45 text-white hover:bg-white/15'
-                          }`}
-                        >
-                          {s.size}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              <div className="mt-3 sm:mt-3.5 grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  disabled={outOfStock}
-                  onClick={quickAdd}
-                  className="flex items-center justify-center gap-1.5 h-10 rounded-full border-2 border-white/70 text-[12.5px] sm:text-[13px] font-semibold hover:bg-white hover:text-[#6B1838] transition-colors disabled:opacity-40"
-                >
-                  <ShoppingBag size={15} /> Add to Cart
-                </button>
-                <button
-                  type="button"
-                  disabled={outOfStock}
-                  onClick={handleBuyNow}
-                  className="relative overflow-hidden shine-sweep h-10 rounded-full text-[12.5px] sm:text-[13px] font-bold text-[#4A0F28] bg-gradient-to-r from-[#F6D573] via-[#E9B84F] to-[#D9A441] shadow-[0_6px_16px_-6px_rgba(217,164,65,.9)] hover:brightness-105 transition disabled:opacity-40"
-                >
-                  Buy Now
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* ══════════════ BACK FACE (Mobile 3D Flip Details) ══════════════ */}
         <div
-          className="flip-card-back gold-frame shadow-hanger flex flex-col justify-between p-2.5 sm:p-3 text-white overflow-hidden select-none"
+          className="flip-card-back gold-frame shadow-md flex flex-col justify-between p-2.5 sm:p-3 text-white overflow-hidden select-none"
           style={{
             borderWidth: 2.5,
             background: 'linear-gradient(165deg, #7A1D41 0%, #4A0F28 60%, #300819 100%)',
