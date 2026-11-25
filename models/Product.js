@@ -52,6 +52,19 @@ const ProductSchema = new mongoose.Schema(
     // falls back to this product's category.sizeChart instead.
     sizeChart: [{ type: String }],
 
+    // Optional structured size chart table rows from backend
+    sizeChartTable: [
+      {
+        size: { type: String },
+        chest: { type: String, default: '' },
+        bust: { type: String, default: '' },
+        waist: { type: String, default: '' },
+        hip: { type: String, default: '' },
+        length: { type: String, default: '' },
+        shoulder: { type: String, default: '' }
+      }
+    ],
+
     sleeveOptions: [{ type: String, enum: ['Full Sleeve', 'Half Sleeve', 'Elbow Sleeve', 'Sleeveless'] }],
     zipOptions: [{ type: String, enum: ['With Zip', 'Without Zip'] }],
 

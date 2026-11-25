@@ -13,6 +13,19 @@ const CategorySchema = new mongoose.Schema(
     // of its own.
     sizeChart: [{ type: String }],
 
+    // Optional structured size chart table rows from backend
+    sizeChartTable: [
+      {
+        size: { type: String },
+        chest: { type: String, default: '' },
+        bust: { type: String, default: '' },
+        waist: { type: String, default: '' },
+        hip: { type: String, default: '' },
+        length: { type: String, default: '' },
+        shoulder: { type: String, default: '' }
+      }
+    ],
+
     parent: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', default: null },
     sortOrder: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true },

@@ -556,8 +556,15 @@ export default function ProductClient({ data }) {
 
       {/* Modals */}
       {mounted && lightboxImg && <Lightbox src={lightboxImg} onClose={() => setLightboxImg(null)} />}
-      {mounted && sizeChartOpen && sizeChartImages.length > 0 && (
-        <SizeChartModal images={sizeChartImages} onClose={() => setSizeChartOpen(false)} />
+      {mounted && sizeChartOpen && (
+        <SizeChartModal
+          images={sizeChartImages}
+          category={product.category}
+          productName={product.name}
+          customTable={product.sizeChartTable?.length ? product.sizeChartTable : product.category?.sizeChartTable}
+          availableSizes={activeVariant?.sizes?.map((s) => s.size) || []}
+          onClose={() => setSizeChartOpen(false)}
+        />
       )}
     </div>
   );

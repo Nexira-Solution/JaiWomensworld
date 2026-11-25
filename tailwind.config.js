@@ -64,7 +64,7 @@ module.exports = {
       },
       fontFamily: {
         display: ['var(--font-display)', 'Playfair Display', 'Georgia', 'serif'],
-        body: ['var(--font-body)', 'Inter', '-apple-system', 'Segoe UI', 'sans-serif'],
+        body: ['var(--font-body)', 'Outfit', '-apple-system', 'Segoe UI', 'sans-serif'],
       },
       boxShadow: {
         glow: '0 0 0 2px rgba(217,164,65,.4), 0 10px 25px -8px rgba(18, 35, 63, 0.1)',

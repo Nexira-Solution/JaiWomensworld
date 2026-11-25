@@ -1,5 +1,7 @@
 'use client';
 
+import { Ruler } from 'lucide-react';
+
 // Design tokens — JAI WOMENS WORLD brand palette
 const INK = '#171717';
 const INK_SOFT = '#7B5D69';
@@ -166,13 +168,14 @@ export default function ColorSizeSelector({
           <p className="text-xs uppercase tracking-wider font-medium" style={{ color: INK_SOFT }}>
             {isJewellery ? 'Ring/Bangle Size' : 'Select Size'}
           </p>
-          {hasSizeChart && (
+          {!isJewellery && (
             <button
               type="button"
               onClick={onViewSizeChart}
-              className="text-xs font-semibold text-[#B02F5E] hover:underline uppercase tracking-wider"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#B02F5E] hover:text-[#12233F] transition-colors uppercase tracking-wider py-1 px-2.5 rounded-full border border-[#B02F5E]/30 hover:border-[#B02F5E] hover:bg-[#FCE4E8]/50 active:scale-95 cursor-pointer"
             >
-              Size Guide
+              <Ruler size={13} className="text-[#D9A441]" />
+              <span>Size Chart</span>
             </button>
           )}
         </div>
