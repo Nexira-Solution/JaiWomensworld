@@ -1,7 +1,7 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import WhatsAppButton from '@/components/WhatsAppButton';
-import BottomNav from '@/components/BottomNav';
+// import BottomNav from '@/components/BottomNav';
 import { getNavCategories } from '@/lib/navCategories';
 
 export default async function ShopLayout({ children }) {
@@ -14,7 +14,8 @@ export default async function ShopLayout({ children }) {
       <main className="flex-1">{children}</main>
       <Footer />
       <WhatsAppButton phone="919500381414" />
-      <BottomNav />
+      {/* Mobile Bottom Navigation Bar - Commented out. Uncomment below line to re-enable */}
+      {/* <BottomNav /> */}
     </div>
   );
 }
