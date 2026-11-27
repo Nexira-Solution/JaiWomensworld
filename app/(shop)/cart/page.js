@@ -18,7 +18,7 @@ function getCartItemImage(item) {
 
 export default function CartPage() {
   const { items, updateQty, removeItem, subtotal } = useCart();
-  const { loading: syncing } = useCartQuote();
+  const { quote, loading: syncing } = useCartQuote();
 
   if (items.length === 0) {
     return (
@@ -160,16 +160,54 @@ export default function CartPage() {
           })}
         </div>
 
-        {/* Order Summary & Checkout Card */}
-        <div className="mt-8 bg-white rounded-xl border border-[#F5D5DB] shadow-card p-6 sm:p-8">
-          <div className="flex items-center justify-between pb-4 border-b border-[#F5D5DB]">
-            <span className="text-xs uppercase tracking-wider text-[#7B5D69] font-medium">
-              Subtotal {syncing && <span className="text-[11px] lowercase italic">(syncing prices...)</span>}
-            </span>
-            <span className="font-display text-2xl font-semibold text-[#12233F]">
-              {formatINR(subtotal)}
-            </span>
-          </div>
+          {/* Wholesale Tier Motivation Banner */}
+          {quote?.nextWholesaleTier && quote?.piecesNeededForNextTier > 0 && (
+            <div className="mt-4 p-3.5 rounded-lg bg-[#FCE4E8] border border-[#F5D5DB] flex items-center justify-between text-xs text-[#12233F]">
+              <span className="font-medium">
+                Wholesale Offer: Add <strong className="text-[#B02F5E]">{quote.piecesNeededForNextTier} more piece{quote.piecesNeededForNextTier > 1 ? 's' : ''}</strong> to unlock <strong className="text-[#B02F5E]">{quote.nextWholesaleTier.description}</strong>!
+              </span>
+            </div>
+          )}
+
+          {/* Order Summary & Checkout Card */}
+          <div className="mt-6 bg-white rounded-xl border border-[#F5D5DB] shadow-card p-6 sm:p-8">
+            <div className="space-y-2.5 pb-4 border-b border-[#F5D5DB]">
+              <div className="flex items-center justify-between">
+                <span className="text-xs uppercase tracking-wider text-[#7B5D69] font-medium">
+                  Subtotal {syncing && <span className="text-[11px] lowercase italic">(syncing prices...)</span>}
+                </span>
+                <span className="font-semibold text-sm sm:text-base text-[#12233F]">
+                  {formatINR(quote?.subtotal ?? subtotal)}
+                </span>
+              </div>
+
+              {quote?.wholesaleDiscount > 0 && (
+                <div className="flex items-center justify-between text-[#B02F5E]">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-semibold uppercase tracking-wider">
+                      Wholesale Discount
+                    </span>
+                    {quote.wholesaleTier?.description && (
+                      <span className="text-[10px] text-[#7B5D69]">
+                        Tier: {quote.wholesaleTier.description}
+                      </span>
+                    )}
+                  </div>
+                  <span className="font-semibold text-sm sm:text-base">
+                    −{formatINR(quote.wholesaleDiscount)}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-2 border-t border-dashed border-[#F5D5DB]">
+                <span className="text-xs uppercase tracking-wider text-[#12233F] font-semibold">
+                  Estimated Total
+                </span>
+                <span className="font-display text-2xl font-semibold text-[#12233F]">
+                  {formatINR(Math.max(0, (quote?.subtotal ?? subtotal) - (quote?.wholesaleDiscount || 0)))}
+                </span>
+              </div>
+            </div>
 
           <p className="text-[11px] text-[#7B5D69] mt-2 font-light">
             Taxes included. Delivery fee calculated at checkout based on location.

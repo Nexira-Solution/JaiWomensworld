@@ -28,50 +28,67 @@ const inputStyle = { border: `1px solid ${LINE}`, borderRadius: '3px', color: IN
 const sectionHeadClass = 'text-[11px] font-medium uppercase tracking-[0.18em] mb-4';
 
 // ---------- Validation ----------
-const validators = {
-  name: (v) => {
-    const s = v.trim();
-    if (!s) return 'Full name is required';
-    if (s.length < 3) return 'Enter your full name';
-    if (!/^[A-Za-z][A-Za-z .'-]*$/.test(s)) return 'Name can only contain letters';
-    return '';
-  },
-  phone: (v) => {
-    if (!v) return 'Phone number is required';
-    if (!/^\d+$/.test(v)) return 'Digits only';
-    if (v.length !== 10) return 'Phone number must be exactly 10 digits';
-    if (!/^[6-9]/.test(v)) return 'Enter a valid Indian mobile number (starts with 6–9)';
-    if (/^(\d)\1{9}$/.test(v)) return 'Enter a valid phone number';
-    return '';
-  },
-  email: (v) => {
-    if (!v.trim()) return ''; // optional
-    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) ? '' : 'Enter a valid email address';
-  },
-  line1: (v) => {
-    const s = v.trim();
-    if (!s) return 'Address is required';
-    if (s.length < 5) return 'Address is too short';
-    if (!/[A-Za-z0-9]/.test(s)) return 'Enter a valid address';
-    return '';
-  },
-  city: (v) => {
-    const s = v.trim();
-    if (!s) return 'City is required';
-    if (s.length < 2) return 'Enter a valid city';
-    if (!/^[A-Za-z][A-Za-z .'-]*$/.test(s)) return 'City can only contain letters';
-    return '';
-  },
-  state: (v) => (v ? '' : 'Select your state'),
-  pincode: (v) => {
-    if (!v) return 'Pincode is required';
-    if (!/^[1-9]\d{5}$/.test(v)) return 'Pincode must be exactly 6 digits';
-    return '';
-  },
-};
+function getValidators(isInternational) {
+  return {
+    name: (v) => {
+      const s = String(v || '').trim();
+      if (!s) return 'Full name is required';
+      if (s.length < 3) return 'Enter your full name';
+      if (!/^[A-Za-z][A-Za-z .'-]*$/.test(s)) return 'Name can only contain letters';
+      return '';
+    },
+    phone: (v) => {
+      if (!v) return 'Phone number is required';
+      const digits = String(v).replace(/\D/g, '');
+      if (isInternational) {
+        if (digits.length < 7) return 'Enter a valid phone number (at least 7 digits)';
+        return '';
+      }
+      if (!/^\d+$/.test(v)) return 'Digits only';
+      if (v.length !== 10) return 'Phone number must be exactly 10 digits';
+      if (!/^[6-9]/.test(v)) return 'Enter a valid Indian mobile number (starts with 6–9)';
+      if (/^(\d)\1{9}$/.test(v)) return 'Enter a valid phone number';
+      return '';
+    },
+    email: (v) => {
+      if (!v || !v.trim()) return ''; // optional
+      return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) ? '' : 'Enter a valid email address';
+    },
+    line1: (v) => {
+      const s = String(v || '').trim();
+      if (!s) return 'Address is required';
+      if (s.length < 5) return 'Address is too short';
+      if (!/[A-Za-z0-9]/.test(s)) return 'Enter a valid address';
+      return '';
+    },
+    city: (v) => {
+      const s = String(v || '').trim();
+      if (!s) return 'City is required';
+      if (s.length < 2) return 'Enter a valid city';
+      return '';
+    },
+    state: (v) => {
+      const s = String(v || '').trim();
+      if (!s) return isInternational ? 'State / Province is required' : 'Select your state';
+      if (!isInternational && !INDIAN_STATES.includes(s)) return 'Select a valid Indian state';
+      return '';
+    },
+    pincode: (v) => {
+      if (!v || !String(v).trim()) return isInternational ? 'Postal code is required' : 'Pincode is required';
+      if (!isInternational) {
+        if (!/^[1-9]\d{5}$/.test(String(v))) return 'Pincode must be exactly 6 digits';
+      }
+      return '';
+    },
+    country: (v) => (v ? '' : 'Select your country'),
+  };
+}
 
-// Strips non-digits, drops +91 / 91 / 0 prefix if pasted, caps at 10 digits
-function cleanPhone(raw) {
+// Strips invalid characters depending on domestic vs international
+function cleanPhone(raw, isInternational) {
+  if (isInternational) {
+    return raw.replace(/[^\d+ -]/g, '').slice(0, 18);
+  }
   let d = raw.replace(/\D/g, '');
   if (d.length > 10 && d.startsWith('91')) d = d.slice(2);
   if (d.length > 10 && d.startsWith('0')) d = d.slice(1);
@@ -102,11 +119,32 @@ function SSRKInput({ placeholder, type = 'text', value, onChange, onBlur, autoCo
 export default function CheckoutPage() {
   const { items, subtotal, totalPieces, clearCart, updateQty, removeItem, setItemStock } = useCart();
   const router = useRouter();
+  const [settings, setSettings] = useState(null);
   const [form, setForm] = useState({
     name: '', phone: '', email: '',
-    line1: '', line2: '', city: '', state: '', pincode: '', landmark: ''
+    line1: '', line2: '', city: '', state: '', pincode: '', landmark: '',
+    country: 'India'
   });
   const [touched, setTouched] = useState({});
+
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then((r) => r.json())
+      .then((d) => setSettings(d.settings || null))
+      .catch(() => {});
+  }, []);
+
+  const isInternational = useMemo(() => {
+    const c = String(form.country || '').trim().toLowerCase();
+    return Boolean(c && c !== 'india' && c !== 'in');
+  }, [form.country]);
+
+  const availableCountries = useMemo(() => {
+    if (!settings?.internationalShippingEnabled) return [];
+    return (settings.internationalShipping || [])
+      .filter((r) => r.enabled !== false && String(r.country || '').trim().toLowerCase() !== 'india')
+      .map((r) => r.country);
+  }, [settings]);
 
   // Coupon: `coupon` is what the user types, `appliedCoupon` is only set
   // after the server confirms the code is valid.
@@ -114,6 +152,12 @@ export default function CheckoutPage() {
   const [appliedCoupon, setAppliedCoupon] = useState('');
   const [applyingCoupon, setApplyingCoupon] = useState(false);
   const [discount, setDiscount] = useState(0);
+
+  // Wholesale discounts
+  const [wholesaleDiscount, setWholesaleDiscount] = useState(0);
+  const [wholesaleTier, setWholesaleTier] = useState(null);
+  const [nextWholesaleTier, setNextWholesaleTier] = useState(null);
+  const [piecesNeededForNextTier, setPiecesNeededForNextTier] = useState(0);
 
   const [paymentMethod, setPaymentMethod] = useState('razorpay');
   const [submitting, setSubmitting] = useState(false);
@@ -123,35 +167,56 @@ export default function CheckoutPage() {
   const [freeShippingAbove, setFreeShippingAbove] = useState(null);
   const [shippingLoading, setShippingLoading] = useState(false);
   const [deliverable, setDeliverable] = useState(true);
+  const [shippingError, setShippingError] = useState('');
+  const [serverTotal, setServerTotal] = useState(null);
 
-  const discountedSubtotal = subtotal - discount;
-  const total = shipping !== null ? Math.round(discountedSubtotal + shipping) : null;
+  const isInternationalPaymentAllowed = Boolean(settings?.internationalPaymentEnabled);
+
+  // Switch paymentMethod automatically when switching domestic vs international
+  useEffect(() => {
+    if (isInternational) {
+      if (isInternationalPaymentAllowed) {
+        setPaymentMethod('international');
+      } else {
+        setPaymentMethod('');
+      }
+    } else {
+      setPaymentMethod('razorpay');
+    }
+  }, [isInternational, isInternationalPaymentAllowed]);
+
+  const totalDiscount = discount + wholesaleDiscount;
+  const discountedSubtotal = Math.max(0, subtotal - totalDiscount);
+  const total = serverTotal !== null ? serverTotal : (shipping !== null ? Math.round(discountedSubtotal + shipping) : null);
 
   // Validation state
   const errors = useMemo(() => {
+    const vMap = getValidators(isInternational);
     const e = {};
-    Object.keys(validators).forEach((k) => { e[k] = validators[k](form[k] || ''); });
+    Object.keys(vMap).forEach((k) => { e[k] = vMap[k](form[k] || ''); });
     return e;
-  }, [form]);
+  }, [form, isInternational]);
 
   const isFormValid = Object.values(errors).every((m) => !m);
 
   const touch = (field) => setTouched((t) => ({ ...t, [field]: true }));
   const err = (field) => (touched[field] ? errors[field] : '');
 
-  // Physical pieces across the cart (fallback weight only).
-  const totalQty = totalPieces;
-
-  // Lines sent to the shipping API. The server looks up each product's / combo's
-  // weight from the database, so only identifiers + quantities are sent.
-  const shippingItems = useMemo(
+  // Lines sent to the quote & order API
+  const orderItemsPayload = useMemo(
     () =>
       items.map((i) => ({
         productId: i.productId,
-        comboId: i.comboId,
-        isCombo: i.isCombo || false,
+        variantId: i.variantId,
+        size: i.size,
+        sleeveType: i.sleeveType || '',
+        zipType: i.zipType || '',
+        pantOption: i.pantOption,
+        shawlOption: i.shawlOption,
         qty: i.qty,
-        packDetails: i.packDetails,
+        isCombo: i.isCombo || false,
+        comboId: i.comboId,
+        ...(i.packDetails ? { packDetails: i.packDetails } : {}),
       })),
     [items]
   );
@@ -159,36 +224,44 @@ export default function CheckoutPage() {
   const fetchShipping = useCallback(async () => {
     setShippingLoading(true);
     try {
-      const res = await fetch('/api/admin/settings', {
+      const res = await fetch('/api/cart/quote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          subtotal: discountedSubtotal,
-          totalQty,
+          items: orderItemsPayload,
+          couponCode: appliedCoupon,
           state: form.state,
-          items: shippingItems
+          country: form.country || 'India'
         })
       });
       const data = await res.json();
       if (res.ok) {
-        setShipping(data.shippingCost);
+        setShipping(data.shippingFee);
         setFreeShippingAbove(data.freeShippingAbove);
         setDeliverable(data.deliverable !== false);
+        setWholesaleDiscount(data.wholesaleDiscount || 0);
+        setWholesaleTier(data.wholesaleTier || null);
+        setNextWholesaleTier(data.nextWholesaleTier || null);
+        setPiecesNeededForNextTier(data.piecesNeededForNextTier || 0);
+        setServerTotal(data.total);
+        setShippingError('');
       } else {
-        toast.error(data.error || 'Could not calculate shipping');
+        setDeliverable(false);
+        setShippingError(data.error || 'Could not calculate shipping');
+        setShipping(null);
       }
     } catch {
       toast.error('Could not calculate shipping');
     } finally {
       setShippingLoading(false);
     }
-  }, [discountedSubtotal, totalQty, form.state, shippingItems]);
+  }, [orderItemsPayload, appliedCoupon, form.state, form.country]);
 
   useEffect(() => { fetchShipping(); }, [fetchShipping]);
 
   function update(field, value) {
-    if (field === 'phone') value = cleanPhone(value);
-    if (field === 'pincode') value = value.replace(/\D/g, '').slice(0, 6);
+    if (field === 'phone') value = cleanPhone(value, isInternational);
+    if (field === 'pincode' && !isInternational) value = value.replace(/\D/g, '').slice(0, 6);
     setForm((f) => ({ ...f, [field]: value }));
   }
 
@@ -290,12 +363,19 @@ export default function CheckoutPage() {
 
   async function placeOrder() {
     if (!isFormValid) {
-      setTouched({ name: true, phone: true, email: true, line1: true, city: true, state: true, pincode: true });
+      setTouched({ name: true, phone: true, email: true, line1: true, city: true, state: true, pincode: true, country: true });
       const firstError = Object.values(errors).find(Boolean);
       toast.error(firstError || 'Please fix the highlighted fields');
       return;
     }
-    if (!deliverable) { toast.error(`Sorry, we don't deliver to ${form.state} yet`); return; }
+    if (!deliverable) {
+      toast.error(shippingError || `Sorry, we don't deliver to ${isInternational ? form.country : form.state} yet`);
+      return;
+    }
+    if (isInternational && !isInternationalPaymentAllowed) {
+      toast.error('International online payments are currently unavailable');
+      return;
+    }
     if (items.length === 0) { toast.error('Your cart is empty'); return; }
     if (shipping === null) { toast.error('Shipping is still being calculated, please wait'); return; }
 
@@ -307,21 +387,6 @@ export default function CheckoutPage() {
       return;
     }
 
-    const orderItems = items.map((i) => ({
-      productId: i.productId,
-      variantId: i.variantId,
-      size: i.size,
-      sleeveType: i.sleeveType || '',
-      zipType: i.zipType || '',
-      pantOption: i.pantOption,
-      shawlOption: i.shawlOption,
-      qty: i.qty,
-      isCombo: i.isCombo || false,
-      comboId: i.comboId,
-      // Color-pack: server uses packSize + colors to verify pieces, stock and price.
-      ...(i.packDetails ? { packDetails: i.packDetails } : {}),
-    }));
-
     // Send trimmed values to the server
     const cleanForm = {
       ...form,
@@ -330,25 +395,27 @@ export default function CheckoutPage() {
       line1: form.line1.trim(),
       line2: form.line2.trim(),
       city: form.city.trim(),
+      state: form.state.trim(),
+      pincode: form.pincode.trim(),
       landmark: form.landmark.trim(),
+      country: form.country.trim() || 'India'
     };
 
+    const activePaymentMethod = isInternational ? 'international' : 'razorpay';
+
     try {
-      if (paymentMethod === 'razorpay') {
-        // Server recomputes the total (shipping from DB-derived weights
-        // and the delivery state) and stashes the order payload so the
-        // webhook can create the order even if this tab closes early.
-        // `expectedTotal` is only a safety check: on mismatch the server
-        // answers 409 and the Razorpay popup never opens.
+      if (activePaymentMethod === 'razorpay' || activePaymentMethod === 'international') {
         const orderRes = await fetch('/api/payment/create-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            items: orderItems,
+            items: orderItemsPayload,
             customer: { name: cleanForm.name, phone: cleanForm.phone, email: cleanForm.email },
             shippingAddress: cleanForm,
             couponCode: appliedCoupon,
-            expectedTotal: total
+            expectedTotal: total,
+            paymentMethod: activePaymentMethod,
+            country: cleanForm.country
           })
         });
         const orderData = await orderRes.json();
@@ -368,18 +435,15 @@ export default function CheckoutPage() {
           prefill: { name: cleanForm.name, contact: cleanForm.phone, email: cleanForm.email },
           theme: { color: '#12233F' },
           handler: async function (response) {
-            // Fast path — if this fails or never runs, the webhook creates
-            // the same order server-side. /api/orders is idempotent on
-            // razorpayOrderId, so this is always safe to call.
             const finalRes = await fetch('/api/orders', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                items: orderItems,
+                items: orderItemsPayload,
                 customer: { name: cleanForm.name, phone: cleanForm.phone, email: cleanForm.email },
                 shippingAddress: cleanForm,
                 couponCode: appliedCoupon,
-                paymentMethod: 'razorpay',
+                paymentMethod: activePaymentMethod,
                 razorpayOrderId: response.razorpay_order_id,
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature
@@ -407,7 +471,7 @@ export default function CheckoutPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            items: orderItems,
+            items: orderItemsPayload,
             customer: { name: cleanForm.name, phone: cleanForm.phone, email: cleanForm.email },
             shippingAddress: cleanForm,
             couponCode: appliedCoupon,
@@ -427,11 +491,12 @@ export default function CheckoutPage() {
 
   const placeOrderDisabled =
     submitting || shippingLoading || checkingStock || applyingCoupon ||
-    shipping === null || !deliverable || !isFormValid;
+    shipping === null || !deliverable || !isFormValid ||
+    (isInternational && !isInternationalPaymentAllowed) ||
+    (!isInternational && paymentMethod !== 'razorpay') ||
+    (isInternational && paymentMethod !== 'international');
 
-  // Only show the "add ₹X more for free shipping" banner when a free-shipping
-  // threshold applies (> 0, already resolved for the chosen state) and the
-  // customer hasn't reached it.
+  // Free shipping banner
   const amountToFreeShipping =
     freeShippingAbove !== null && freeShippingAbove > 0
       ? freeShippingAbove - discountedSubtotal
@@ -449,6 +514,15 @@ export default function CheckoutPage() {
         Checkout
       </h1>
 
+      {nextWholesaleTier && piecesNeededForNextTier > 0 && (
+        <div
+          className="text-xs py-2.5 px-4 mb-4"
+          style={{ background: WASH, color: INK_SOFT, borderRadius: '3px' }}
+        >
+          Wholesale Offer: Add <strong style={{ color: TEAL }}>{piecesNeededForNextTier} more piece{piecesNeededForNextTier > 1 ? 's' : ''}</strong> to unlock <strong style={{ color: TEAL }}>{nextWholesaleTier.description}</strong>!
+        </div>
+      )}
+
       {showFreeShippingBanner && (
         <div
           className="text-xs py-2.5 px-4 mb-6"
@@ -459,20 +533,45 @@ export default function CheckoutPage() {
         </div>
       )}
 
-      {!deliverable && form.state && (
+      {!deliverable && (
         <div
           className="text-xs py-2.5 px-4 mb-6"
           style={{ background: RUST_WASH, color: RUST, borderRadius: '3px' }}
         >
-          Sorry, we don&apos;t deliver to <strong>{form.state}</strong> yet. Please choose another state.
+          {shippingError || `Sorry, we don't deliver to ${isInternational ? form.country : form.state} yet. Please choose another destination.`}
         </div>
       )}
 
-      <div className="flex flex-col gap-8 sm:grid sm:grid-cols-2 sm:gap-12">
+      <div className="flex flex-col gap-8 md:grid md:grid-cols-2 md:gap-10 lg:gap-12">
 
         <div>
           <p className={sectionHeadClass} style={{ color: TEAL }}>Shipping Details</p>
           <div className="space-y-3">
+            <div>
+              <label className="text-[11px] font-medium uppercase tracking-wider block mb-1" style={{ color: INK_SOFT }}>
+                Delivery Country *
+              </label>
+              <select
+                value={form.country}
+                onChange={(e) => update('country', e.target.value)}
+                onBlur={() => touch('country')}
+                className={inputClass}
+                style={{
+                  ...inputStyle,
+                  borderColor: err('country') ? RUST : LINE,
+                  color: form.country ? INK : INK_SOFT,
+                }}
+              >
+                <option value="India">India (Domestic)</option>
+                {availableCountries.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              {err('country') && (
+                <p className="text-[11px] mt-1" style={{ color: RUST }}>{err('country')}</p>
+              )}
+            </div>
+
             <SSRKInput
               placeholder="Full Name *"
               autoComplete="name"
@@ -482,11 +581,11 @@ export default function CheckoutPage() {
               error={err('name')}
             />
             <SSRKInput
-              placeholder="Phone Number (10 digits) *"
+              placeholder={isInternational ? 'Phone Number (with country code) *' : 'Phone Number (10 digits) *'}
               type="tel"
-              inputMode="numeric"
+              inputMode="tel"
               autoComplete="tel"
-              maxLength={10}
+              maxLength={isInternational ? 18 : 10}
               value={form.phone}
               onChange={(e) => update('phone', e.target.value)}
               onBlur={() => touch('phone')}
@@ -525,33 +624,46 @@ export default function CheckoutPage() {
                 error={err('city')}
               />
               <div>
-                <select
-                  autoComplete="address-level1"
-                  value={form.state}
-                  onChange={(e) => update('state', e.target.value)}
-                  onBlur={() => touch('state')}
-                  className={inputClass}
-                  style={{
-                    ...inputStyle,
-                    borderColor: err('state') ? RUST : LINE,
-                    color: form.state ? INK : INK_SOFT,
-                  }}
-                >
-                  <option value="">State *</option>
-                  {INDIAN_STATES.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-                {err('state') && (
-                  <p className="text-[11px] mt-1" style={{ color: RUST }}>{err('state')}</p>
+                {!isInternational ? (
+                  <>
+                    <select
+                      autoComplete="address-level1"
+                      value={form.state}
+                      onChange={(e) => update('state', e.target.value)}
+                      onBlur={() => touch('state')}
+                      className={inputClass}
+                      style={{
+                        ...inputStyle,
+                        borderColor: err('state') ? RUST : LINE,
+                        color: form.state ? INK : INK_SOFT,
+                      }}
+                    >
+                      <option value="">State *</option>
+                      {INDIAN_STATES.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                    {err('state') && (
+                      <p className="text-[11px] mt-1" style={{ color: RUST }}>{err('state')}</p>
+                    )}
+                  </>
+                ) : (
+                  <SSRKInput
+                    placeholder="State / Province *"
+                    autoComplete="address-level1"
+                    value={form.state}
+                    onChange={(e) => update('state', e.target.value)}
+                    onBlur={() => touch('state')}
+                    error={err('state')}
+                  />
                 )}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <SSRKInput
-                placeholder="Pincode (6 digits) *"
-                inputMode="numeric"
-                maxLength={6}
+                placeholder={isInternational ? 'Postal Code / Zip *' : 'Pincode (6 digits) *'}
+                inputMode={isInternational ? 'text' : 'numeric'}
+                maxLength={isInternational ? 10 : 6}
                 autoComplete="postal-code"
                 value={form.pincode}
                 onChange={(e) => update('pincode', e.target.value)}
@@ -637,17 +749,23 @@ export default function CheckoutPage() {
                 <span>Subtotal</span>
                 <span>{formatINR(subtotal)}</span>
               </div>
+              {wholesaleDiscount > 0 && (
+                <div className="flex justify-between" style={{ color: TEAL }}>
+                  <span>Wholesale Discount{wholesaleTier?.description ? ` (${wholesaleTier.description})` : ''}</span>
+                  <span>−{formatINR(wholesaleDiscount)}</span>
+                </div>
+              )}
               {discount > 0 && (
                 <div className="flex justify-between" style={{ color: TEAL }}>
-                  <span>Discount{appliedCoupon ? ` (${appliedCoupon})` : ''}</span>
+                  <span>Coupon Discount{appliedCoupon ? ` (${appliedCoupon})` : ''}</span>
                   <span>−{formatINR(discount)}</span>
                 </div>
               )}
               <div className="flex justify-between" style={{ color: INK_SOFT }}>
-                <span>Shipping</span>
+                <span>Shipping {isInternational ? `(${form.country})` : ''}</span>
                 <span>
                   {!deliverable
-                    ? <span style={{ color: RUST }}>Not available for {form.state}</span>
+                    ? <span style={{ color: RUST }}>Not available for {isInternational ? form.country : form.state}</span>
                     : shippingLoading
                       ? <span style={{ color: INK_SOFT, opacity: 0.6 }}>Calculating…</span>
                       : shipping === 0
@@ -670,16 +788,105 @@ export default function CheckoutPage() {
 
           <div>
             <p className={sectionHeadClass} style={{ color: TEAL }}>Payment Method</p>
-            <label className="flex items-center gap-3 text-sm cursor-pointer" style={{ color: INK }}>
-              <input
-                type="radio"
-                checked={paymentMethod === 'razorpay'}
-                onChange={() => setPaymentMethod('razorpay')}
-                className="w-4 h-4"
-                style={{ accentColor: TEAL }}
-              />
-              Pay Online (Cards / UPI / Netbanking)
-            </label>
+            <div className="space-y-2.5">
+              {/* Option 1: Pay Online */}
+              <label
+                className={`flex items-start gap-3 p-3 sm:p-3.5 rounded border transition-all ${
+                  !isInternational
+                    ? 'cursor-pointer hover:border-[#12233F]'
+                    : 'cursor-not-allowed opacity-50 bg-black/[0.02]'
+                }`}
+                style={{
+                  borderColor: !isInternational && paymentMethod === 'razorpay' ? TEAL : LINE,
+                  background: !isInternational && paymentMethod === 'razorpay' ? '#FFFFFF' : PAPER,
+                }}
+              >
+                <input
+                  type="radio"
+                  name="checkoutPaymentMethod"
+                  value="razorpay"
+                  disabled={isInternational}
+                  checked={!isInternational && paymentMethod === 'razorpay'}
+                  onChange={() => {
+                    if (!isInternational) setPaymentMethod('razorpay');
+                  }}
+                  className="w-4 h-4 mt-0.5 shrink-0"
+                  style={{ accentColor: TEAL }}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center justify-between gap-1">
+                    <span className="text-sm font-medium" style={{ color: INK }}>Pay Online</span>
+                    {!isInternational && (
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-[#FCE4E8] text-[#B02F5E] font-medium uppercase tracking-wider">
+                        Domestic
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs mt-0.5" style={{ color: INK_SOFT }}>
+                    Cards / UPI / Netbanking
+                  </p>
+                  {isInternational && (
+                    <p className="text-[11px] mt-1 text-[#7B5D69]">
+                      Available for deliveries within India only
+                    </p>
+                  )}
+                </div>
+              </label>
+
+              {/* Option 2: International Payments (placed directly below Pay Online) */}
+              <label
+                className={`flex items-start gap-3 p-3 sm:p-3.5 rounded border transition-all ${
+                  isInternational && isInternationalPaymentAllowed
+                    ? 'cursor-pointer hover:border-[#12233F]'
+                    : 'cursor-not-allowed opacity-50 bg-black/[0.02]'
+                }`}
+                style={{
+                  borderColor: isInternational && paymentMethod === 'international' ? TEAL : LINE,
+                  background: isInternational && paymentMethod === 'international' ? '#FFFFFF' : PAPER,
+                }}
+              >
+                <input
+                  type="radio"
+                  name="checkoutPaymentMethod"
+                  value="international"
+                  disabled={!isInternational || !isInternationalPaymentAllowed}
+                  checked={isInternational && paymentMethod === 'international'}
+                  onChange={() => {
+                    if (isInternational && isInternationalPaymentAllowed) setPaymentMethod('international');
+                  }}
+                  className="w-4 h-4 mt-0.5 shrink-0"
+                  style={{ accentColor: TEAL }}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center justify-between gap-1">
+                    <span className="text-sm font-medium" style={{ color: INK }}>International Payments</span>
+                    {isInternational && (
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-[#12233F]/10 text-[#12233F] font-medium uppercase tracking-wider">
+                        International
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs mt-0.5" style={{ color: INK_SOFT }}>
+                    Secure payment for international orders
+                  </p>
+                  {!isInternational && (
+                    <p className="text-[11px] mt-1 text-[#7B5D69]">
+                      Available for international delivery destinations
+                    </p>
+                  )}
+                </div>
+              </label>
+
+              {/* Notice if destination is international and payment is unconfigured */}
+              {isInternational && !isInternationalPaymentAllowed && (
+                <div
+                  className="text-xs py-2.5 px-3.5 rounded border border-[#F5D5DB]"
+                  style={{ background: RUST_WASH, color: RUST }}
+                >
+                  International online payments are currently unavailable. Please contact store support.
+                </div>
+              )}
+            </div>
           </div>
 
           <button
@@ -697,12 +904,14 @@ export default function CheckoutPage() {
               : !isFormValid
                 ? 'Complete shipping details'
                 : !deliverable
-                  ? 'Not deliverable to this state'
-                  : shippingLoading
-                    ? 'Calculating shipping…'
-                    : total !== null
-                      ? `Place Order — ${formatINR(total)}`
-                      : 'Place Order'
+                  ? (shippingError || `Not deliverable to ${isInternational ? form.country : form.state}`)
+                  : (isInternational && !isInternationalPaymentAllowed)
+                    ? 'Payment unavailable for this country'
+                    : shippingLoading
+                      ? 'Calculating shipping…'
+                      : total !== null
+                        ? `Place Order — ${formatINR(total)}`
+                        : 'Place Order'
             }
           </button>
         </div>

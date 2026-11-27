@@ -4,7 +4,10 @@ const VariantSchema = new mongoose.Schema(
   {
     color: { type: String, default: '' },
     colorHex: { type: String, default: '#000000' },
-    images: [{ type: String }],
+    images: {
+      type: [{ type: String }],
+      validate: [arr => !arr || arr.length <= 3, 'Maximum 3 images allowed per variant']
+    },
     // Default price for this colour. Any size without its own price uses this.
     price: { type: Number, required: true },
     compareAtPrice: { type: Number, default: 0 },
@@ -46,6 +49,7 @@ const ProductSchema = new mongoose.Schema(
     gender: { type: String, default: 'Women' },
     fabric: { type: String, default: '' },
     tags: [{ type: String }],
+    video: { type: String, default: '' },
     variants: [VariantSchema],
 
     // One or more optional size chart images. If empty, the storefront

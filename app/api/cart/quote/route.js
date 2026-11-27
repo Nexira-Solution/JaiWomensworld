@@ -10,24 +10,32 @@ import { buildOrderItemsAndTotals, OrderError } from '@/lib/orderCalc';
 export async function POST(req) {
   try {
     await dbConnect();
-    const { items, couponCode, state } = await req.json();
+    const { items, couponCode, state, country = 'India' } = await req.json();
 
     if (!Array.isArray(items) || !items.length) {
       return NextResponse.json({ error: 'Cart is empty' }, { status: 400 });
     }
 
     const r = await buildOrderItemsAndTotals(items, couponCode || '', state || '', {
-      allowUndeliverable: true
+      allowUndeliverable: true,
+      country: country || 'India'
     });
 
     return NextResponse.json({
       subtotal: r.subtotal,
       discount: r.discount,
+      wholesaleDiscount: r.wholesaleDiscount || 0,
+      wholesaleTier: r.wholesaleTier,
+      nextWholesaleTier: r.nextWholesaleTier,
+      piecesNeededForNextTier: r.piecesNeededForNextTier,
+      wholesaleEnabled: r.wholesaleEnabled,
       appliedCoupon: r.appliedCoupon,
       shippingFee: r.shippingFee,
       total: r.total,
       deliverable: r.deliverable,
       shippingState: r.shippingState,
+      country: r.country,
+      isInternational: r.isInternational,
       freeShippingAbove: r.freeShippingAbove,
       lines: r.linePrices,
       skipped: r.skippedIndexes

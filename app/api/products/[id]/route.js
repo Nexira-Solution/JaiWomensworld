@@ -52,6 +52,19 @@ export const PUT = requireAdmin(async (req, { params }) => {
   // Clean freeShipping / freeShippingStates (updates skip schema validators)
   sanitizeFreeShipping(body);
 
+  // Enforce max 3 images per variant
+  if (Array.isArray(body.variants)) {
+    for (const v of body.variants) {
+      if (Array.isArray(v.images) && v.images.length > 3) {
+        return NextResponse.json({ error: 'Maximum 3 images allowed per variant' }, { status: 400 });
+      }
+    }
+  }
+  // Enforce max 1 video (as string URL)
+  if (body.video && typeof body.video !== 'string') {
+    return NextResponse.json({ error: 'Only one video is allowed per product' }, { status: 400 });
+  }
+
   if (body.variants?.length) {
     body.basePrice = computeBasePrice(body.variants);
   }

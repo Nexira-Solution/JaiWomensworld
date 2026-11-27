@@ -12,6 +12,30 @@ const StateShippingSchema = new mongoose.Schema(
   { _id: false }
 );
 
+// Destination country for international shipping.
+const InternationalShippingRuleSchema = new mongoose.Schema(
+  {
+    country: { type: String, required: true },
+    countryCode: { type: String, default: '' },
+    shippingCharge: { type: Number, required: true, min: 0 },
+    freeShippingAbove: { type: Number, default: null, min: 0 },
+    enabled: { type: Boolean, default: true }
+  },
+  { _id: false }
+);
+
+// Quantity-based wholesale discount tiers.
+const WholesaleTierSchema = new mongoose.Schema(
+  {
+    minQty: { type: Number, required: true, min: 1 },
+    maxQty: { type: Number, default: null },
+    discountType: { type: String, enum: ['percentage', 'fixed'], default: 'percentage' },
+    discountValue: { type: Number, required: true, min: 0 },
+    description: { type: String, default: '' }
+  },
+  { _id: false }
+);
+
 // One YouTube live / video slot (Yesterday, Today or Tomorrow).
 const LiveSlotSchema = new mongoose.Schema(
   {
@@ -53,6 +77,15 @@ const SettingsSchema = new mongoose.Schema(
 
     // State-wise overrides plus a per-state "deliverable" switch.
     stateShipping: { type: [StateShippingSchema], default: [] },
+
+    // International shipping configuration
+    internationalShippingEnabled: { type: Boolean, default: false },
+    internationalShipping: { type: [InternationalShippingRuleSchema], default: [] },
+    internationalPaymentEnabled: { type: Boolean, default: true },
+
+    // Wholesale / bulk purchase discounts
+    wholesaleDiscountsEnabled: { type: Boolean, default: false },
+    wholesaleTiers: { type: [WholesaleTierSchema], default: [] },
 
     // YouTube live links shown on the homepage.
     liveStreams: { type: LiveStreamsSchema, default: () => ({}) },

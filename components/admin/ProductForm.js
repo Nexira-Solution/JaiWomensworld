@@ -162,6 +162,105 @@ function ImageSlot({ value, onChange, onRemove, showRemove }) {
   );
 }
 
+function ProductVideoUploader({ value, onChange }) {
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef();
+
+  async function handleFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('video/')) {
+      toast.error('Please select a valid video file (MP4, WebM, MOV)');
+      return;
+    }
+    if (file.size > 25 * 1024 * 1024) {
+      toast.error('Video size must be less than 25MB');
+      return;
+    }
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('folder', 'products/videos');
+      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      onChange(data.url);
+      toast.success('Product video uploaded successfully');
+    } catch (err) {
+      toast.error(err.message || 'Video upload failed');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  }
+
+  return (
+    <div style={cardStyle}>
+      <p style={sectionHeadStyle}>Product Video (Optional · Maximum 1 Video)</p>
+      <p style={{ fontSize: '12px', color: INK_SOFT, fontFamily: 'sans-serif', marginBottom: '12px' }}>
+        Add an optional showcase video. Customers can play and pause it directly in the product details gallery.
+      </p>
+
+      {value ? (
+        <div className="space-y-3">
+          <div className="relative rounded overflow-hidden border border-[#E7DCC5] bg-black max-w-sm">
+            <video src={value} controls playsInline className="w-full max-h-56 object-contain" />
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+              className="text-xs font-medium px-3 py-1.5 rounded border border-[#064E4A] text-[#064E4A] hover:bg-[#F5EFE0] transition-colors"
+            >
+              {uploading ? 'Uploading...' : 'Replace Video'}
+            </button>
+            <button
+              type="button"
+              onClick={() => onChange('')}
+              className="text-xs font-medium px-3 py-1.5 rounded border border-red-300 text-red-600 hover:bg-red-50 transition-colors"
+            >
+              Remove Video
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+              className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded bg-[#064E4A] text-white hover:bg-[#064E4A]/90 transition-colors disabled:opacity-50"
+            >
+              {uploading ? (
+                <>
+                  <Loader2 size={13} className="animate-spin" />
+                  <span>Uploading video...</span>
+                </>
+              ) : (
+                <>
+                  <Upload size={13} />
+                  <span>Upload Product Video</span>
+                </>
+              )}
+            </button>
+            <span style={{ fontSize: '12px', color: INK_SOFT, fontFamily: 'sans-serif' }}>or enter video URL:</span>
+          </div>
+          <input
+            placeholder="https://... (direct video URL)"
+            style={{ ...inputStyle, marginTop: 4 }}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+          />
+        </div>
+      )}
+      <input ref={fileRef} type="file" accept="video/mp4,video/webm,video/quicktime,video/*" className="hidden" onChange={handleFile} />
+    </div>
+  );
+}
+
 // Reusable editor for a list of named add-on options (pants / shawls).
 // Each option gets its own image, extra price (added on top of the
 // variant price when a customer picks it), stock, and optional SKU.
@@ -259,6 +358,7 @@ export default function ProductForm({ initial, productId }) {
   const [form, setForm] = useState(() => {
     const base = initial || {
       name: '', slug: '', sku: '', description: '', category: '', fabric: '', tags: [], weight: '',
+      video: '',
       variants: [emptyVariant()],
       sizeChart: [],
       sleeveOptions: [],
@@ -272,6 +372,7 @@ export default function ProductForm({ initial, productId }) {
     };
     return {
       ...base,
+      video: base.video || '',
       weight: base.weight > 0 ? base.weight : '',
       variants: normalizeVariants(base.variants),
       sizeChart: normalizeSizeChart(base.sizeChart),
@@ -333,6 +434,10 @@ export default function ProductForm({ initial, productId }) {
   function addVariantImage(vIdx) {
     setForm((f) => {
       const variants = [...f.variants];
+      if (variants[vIdx].images.length >= 3) {
+        toast.error('Maximum 3 images allowed per variant');
+        return f;
+      }
       variants[vIdx] = { ...variants[vIdx], images: [...variants[vIdx].images, ''] };
       return { ...f, variants };
     });
@@ -433,6 +538,7 @@ export default function ProductForm({ initial, productId }) {
       // Free shipping: everywhere, or only in the selected states
       freeShipping: shipMode === 'all',
       freeShippingStates: shipMode === 'states' ? (form.freeShippingStates || []) : [],
+      video: (form.video || '').trim(),
       pantOptions: (form.pantOptions || [])
         .filter((o) => o.name?.trim())
         .map((o) => ({
@@ -455,7 +561,7 @@ export default function ProductForm({ initial, productId }) {
         ...v,
         price: Number(v.price),
         compareAtPrice: Number(v.compareAtPrice) || 0,
-        images: v.images.filter(Boolean),
+        images: v.images.filter(Boolean).slice(0, 3),
         sizes: v.sizes.map((s) => ({
           ...s,
           stock: Number(s.stock),
@@ -730,6 +836,12 @@ export default function ProductForm({ initial, productId }) {
         </div>
       </div>
 
+      {/* Product Video Section */}
+      <ProductVideoUploader
+        value={form.video || ''}
+        onChange={(url) => setForm((f) => ({ ...f, video: url }))}
+      />
+
       {/* Variants Section */}
       <div>
         <div className="flex items-center justify-between mb-3">
@@ -828,13 +940,15 @@ export default function ProductForm({ initial, productId }) {
                 showRemove={v.images.length > 1}
               />
             ))}
-            <button
-              type="button"
-              onClick={() => addVariantImage(vIdx)}
-              style={{ fontSize: '12px', color: TEAL, fontFamily: 'sans-serif', fontWeight: '500', marginBottom: '12px', cursor: 'pointer' }}
-            >
-              + Add another image
-            </button>
+            {v.images.length < 3 && (
+              <button
+                type="button"
+                onClick={() => addVariantImage(vIdx)}
+                style={{ fontSize: '12px', color: TEAL, fontFamily: 'sans-serif', fontWeight: '500', marginBottom: '12px', cursor: 'pointer' }}
+              >
+                + Add another image ({v.images.length}/3)
+              </button>
+            )}
 
             <p style={{ fontSize: '12px', color: INK_SOFT, fontFamily: 'sans-serif', fontWeight: '500', marginBottom: '2px' }}>
               Sizes, Stock &amp; Price

@@ -67,14 +67,17 @@ const OrderSchema = new mongoose.Schema(
       city: String,
       state: String,
       pincode: String,
-      landmark: String
+      landmark: String,
+      country: { type: String, default: 'India' }
     },
     subtotal: Number,
     discount: { type: Number, default: 0 },
+    wholesaleDiscount: { type: Number, default: 0 },
+    wholesaleTier: { type: String, default: '' },
     couponCode: { type: String, default: '' },
     shippingFee: { type: Number, default: 0 },
     total: Number,
-    paymentMethod: { type: String, enum: ['razorpay', 'cod'], default: 'razorpay' },
+    paymentMethod: { type: String, enum: ['razorpay', 'international', 'cod'], default: 'razorpay' },
     paymentStatus: { type: String, enum: ['pending', 'paid', 'failed', 'refunded'], default: 'pending' },
     // unique + sparse: COD orders have no razorpayOrderId (many nulls allowed),
     // but two orders can never share the same real Razorpay order id —

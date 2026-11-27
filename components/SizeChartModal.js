@@ -197,120 +197,146 @@ export default function SizeChartModal({
   return createPortal(
     <div
       onClick={onClose}
-      className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-6 bg-[#12233F]/75 backdrop-blur-xs animate-fade-in"
+      className="fixed inset-0 z-[10000] flex items-center justify-center p-2.5 sm:p-4 md:p-6 bg-[#12233F]/75 backdrop-blur-xs animate-fade-in"
       role="dialog"
       aria-modal="true"
       aria-labelledby="size-chart-title"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-2xl max-h-[92vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-[#F5D5DB] overflow-hidden"
+        className="relative w-full max-w-lg sm:max-w-xl md:max-w-2xl max-h-[92vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-[#F5D5DB] overflow-hidden mx-1 sm:mx-0"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-[#F5D5DB] bg-[#FFF4F3]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-[#FCE4E8] flex items-center justify-center text-[#B02F5E]">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-[#F5D5DB] bg-[#FFF4F3]">
+          <div className="flex items-center gap-2.5 min-w-0 pr-2">
+            <div className="w-8 h-8 rounded-full bg-[#FCE4E8] flex items-center justify-center text-[#B02F5E] shrink-0">
               <Ruler size={16} />
             </div>
-            <div>
-              <h2 id="size-chart-title" className="font-display font-bold text-lg sm:text-xl text-[#12233F]">
+            <div className="min-w-0">
+              <h2 id="size-chart-title" className="font-display font-bold text-base sm:text-lg md:text-xl text-[#12233F] truncate">
                 {sizeConfig.dressType} Size Chart
               </h2>
-              <p className="text-[11px] sm:text-xs text-[#7B5D69]">
+              <p className="text-[11px] sm:text-xs text-[#7B5D69] truncate">
                 {productName ? `${productName} · ` : ''}Tailored for {sizeConfig.dressType} fit
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-[#7B5D69] hover:text-[#12233F] hover:bg-white border border-transparent hover:border-[#F5D5DB] transition-all cursor-pointer"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-[#7B5D69] hover:text-[#12233F] hover:bg-white border border-transparent hover:border-[#F5D5DB] transition-all cursor-pointer shrink-0"
             aria-label="Close size chart"
           >
             <X size={18} />
           </button>
         </div>
 
-        {/* Navigation Tabs (if backend image exists) */}
-        {hasImages && (
-          <div className="flex border-b border-[#F5D5DB] bg-white px-5 pt-3 gap-3">
-            <button
-              onClick={() => setActiveTab('image')}
-              className={`pb-2.5 text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-colors border-b-2 cursor-pointer ${
-                activeTab === 'image'
-                  ? 'border-[#B02F5E] text-[#B02F5E]'
-                  : 'border-transparent text-[#7B5D69] hover:text-[#12233F]'
-              }`}
-            >
-              <ImageIcon size={15} />
-              <span>Chart Image ({images.length})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('table')}
-              className={`pb-2.5 text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-colors border-b-2 cursor-pointer ${
-                activeTab === 'table'
-                  ? 'border-[#B02F5E] text-[#B02F5E]'
-                  : 'border-transparent text-[#7B5D69] hover:text-[#12233F]'
-              }`}
-            >
-              <Table size={15} />
-              <span>{sizeConfig.dressType} Table</span>
-            </button>
-          </div>
-        )}
+        {/* Navigation Tabs - Always visible across all devices */}
+        <div className="flex border-b border-[#F5D5DB] bg-white px-4 sm:px-6 pt-3 gap-2 sm:gap-4 overflow-x-auto no-scrollbar">
+          <button
+            type="button"
+            onClick={() => setActiveTab('image')}
+            className={`pb-2.5 text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-colors border-b-2 cursor-pointer whitespace-nowrap ${
+              activeTab === 'image'
+                ? 'border-[#B02F5E] text-[#B02F5E]'
+                : 'border-transparent text-[#7B5D69] hover:text-[#12233F]'
+            }`}
+          >
+            <ImageIcon size={15} />
+            <span>Chart Image{hasImages ? ` (${images.length})` : ''}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('table')}
+            className={`pb-2.5 text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-colors border-b-2 cursor-pointer whitespace-nowrap ${
+              activeTab === 'table'
+                ? 'border-[#B02F5E] text-[#B02F5E]'
+                : 'border-transparent text-[#7B5D69] hover:text-[#12233F]'
+            }`}
+          >
+            <Table size={15} />
+            <span>{sizeConfig.dressType} Table</span>
+          </button>
+        </div>
 
         {/* Modal Body */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 no-scrollbar space-y-4">
-          {/* View 1: Backend Image */}
-          {hasImages && activeTab === 'image' && (
-            <div className="space-y-3">
-              <div className="relative w-full min-h-[280px] sm:min-h-[420px] max-h-[60vh] bg-[#FFF4F3] rounded-xl border border-[#F5D5DB] overflow-hidden flex items-center justify-center">
-                <Image
-                  src={images[imgIndex]}
-                  alt={`Size chart ${imgIndex + 1} of ${images.length}`}
-                  width={800}
-                  height={800}
-                  className="w-full h-auto max-h-[58vh] object-contain p-2"
-                  priority
-                />
+          {/* View 1: Chart Image View */}
+          {activeTab === 'image' && (
+            hasImages ? (
+              <div className="space-y-3">
+                <div className="relative w-full min-h-[260px] sm:min-h-[400px] max-h-[58vh] bg-[#FFF4F3] rounded-xl border border-[#F5D5DB] overflow-hidden flex items-center justify-center">
+                  <Image
+                    src={images[imgIndex]}
+                    alt={`Size chart ${imgIndex + 1} of ${images.length}`}
+                    width={800}
+                    height={800}
+                    className="w-full h-auto max-h-[56vh] object-contain p-2"
+                    priority
+                  />
 
-                {images.length > 1 && (
-                  <>
-                    <button
-                      onClick={prev}
-                      className="absolute left-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-[#12233F] shadow-md border border-[#F5D5DB] flex items-center justify-center transition-all cursor-pointer"
-                      aria-label="Previous chart image"
-                    >
-                      <ChevronLeft size={20} />
-                    </button>
-                    <button
-                      onClick={next}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-[#12233F] shadow-md border border-[#F5D5DB] flex items-center justify-center transition-all cursor-pointer"
-                      aria-label="Next chart image"
-                    >
-                      <ChevronRight size={20} />
-                    </button>
-                    <div className="absolute bottom-3 right-3 text-xs px-2.5 py-1 rounded bg-[#12233F]/80 text-white font-medium">
-                      {imgIndex + 1} / {images.length}
-                    </div>
-                  </>
-                )}
+                  {images.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={prev}
+                        className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 hover:bg-white text-[#12233F] shadow-md border border-[#F5D5DB] flex items-center justify-center transition-all cursor-pointer"
+                        aria-label="Previous chart image"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={next}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 hover:bg-white text-[#12233F] shadow-md border border-[#F5D5DB] flex items-center justify-center transition-all cursor-pointer"
+                        aria-label="Next chart image"
+                      >
+                        <ChevronRight size={20} />
+                      </button>
+                      <div className="absolute bottom-3 right-3 text-[11px] sm:text-xs px-2.5 py-1 rounded bg-[#12233F]/80 text-white font-medium">
+                        {imgIndex + 1} / {images.length}
+                      </div>
+                    </>
+                  )}
+                </div>
+                <p className="text-[11px] text-center text-[#7B5D69]">
+                  Official size table from Jai Womens World. Swipe or use buttons to view more if available.
+                </p>
               </div>
-              <p className="text-[11px] text-center text-[#7B5D69]">
-                Official size table from Jai Womens World. Swipe or use buttons to view more if available.
-              </p>
-            </div>
+            ) : (
+              /* Clean Empty State when no size chart images are configured */
+              <div className="flex flex-col items-center justify-center py-10 sm:py-14 px-4 text-center min-h-[260px] sm:min-h-[340px] bg-[#FFF4F3]/50 rounded-xl border border-dashed border-[#F5D5DB]">
+                <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-[#FCE4E8] flex items-center justify-center text-[#B02F5E] mb-3">
+                  <ImageIcon size={26} />
+                </div>
+                <h3 className="font-display font-semibold text-base sm:text-lg text-[#12233F] mb-1.5">
+                  No Size Chart Images Available
+                </h3>
+                <p className="text-xs sm:text-sm text-[#7B5D69] max-w-sm mb-4 leading-relaxed">
+                  A visual measurement diagram image is not uploaded for this product. Please refer to the {sizeConfig.dressType} Table for complete measurement details.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('table')}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider bg-[#12233F] hover:bg-[#B02F5E] text-white transition-all cursor-pointer shadow-xs"
+                >
+                  <Table size={14} />
+                  <span>View {sizeConfig.dressType} Table</span>
+                </button>
+              </div>
+            )
           )}
 
           {/* View 2: Dress Code Measurement Table */}
-          {(!hasImages || activeTab === 'table') && (
+          {activeTab === 'table' && (
             <div className="space-y-4">
               {/* Unit Switcher */}
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold text-[#12233F]">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-[#12233F] truncate">
                   {sizeConfig.dressType} Measurements ({unit === 'in' ? 'Inches' : 'Centimeters'})
                 </p>
-                <div className="inline-flex rounded-lg border border-[#F5D5DB] p-0.5 bg-[#FFF4F3] text-xs font-semibold">
+                <div className="inline-flex rounded-lg border border-[#F5D5DB] p-0.5 bg-[#FFF4F3] text-xs font-semibold shrink-0">
                   <button
+                    type="button"
                     onClick={() => setUnit('in')}
                     className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
                       unit === 'in' ? 'bg-[#12233F] text-white shadow-xs' : 'text-[#7B5D69] hover:text-[#12233F]'
@@ -319,6 +345,7 @@ export default function SizeChartModal({
                     Inches
                   </button>
                   <button
+                    type="button"
                     onClick={() => setUnit('cm')}
                     className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
                       unit === 'cm' ? 'bg-[#12233F] text-white shadow-xs' : 'text-[#7B5D69] hover:text-[#12233F]'
@@ -329,13 +356,13 @@ export default function SizeChartModal({
                 </div>
               </div>
 
-              {/* Table */}
+              {/* Table with responsive horizontal scrolling */}
               <div className="overflow-x-auto rounded-xl border border-[#F5D5DB] shadow-xs">
-                <table className="w-full text-left text-xs sm:text-sm">
+                <table className="w-full text-left text-xs sm:text-sm min-w-[340px] sm:min-w-[460px]">
                   <thead className="bg-[#FFF4F3] text-[#12233F] uppercase tracking-wider font-semibold border-b border-[#F5D5DB]">
                     <tr>
                       {sizeConfig.columns.map((col) => (
-                        <th key={col.key} className="py-3 px-3 sm:px-4">
+                        <th key={col.key} className="py-2.5 sm:py-3 px-3 sm:px-4 whitespace-nowrap">
                           {col.label}
                         </th>
                       ))}
@@ -354,7 +381,7 @@ export default function SizeChartModal({
                           {sizeConfig.columns.map((col) => {
                             if (col.key === 'size') {
                               return (
-                                <td key={col.key} className="py-3 px-3 sm:px-4 font-bold text-[#12233F]">
+                                <td key={col.key} className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-[#12233F] whitespace-nowrap">
                                   <div className="flex items-center gap-1.5">
                                     <span>{row.size}</span>
                                     {isAvailable && (
@@ -367,7 +394,7 @@ export default function SizeChartModal({
                               );
                             }
                             return (
-                              <td key={col.key} className="py-3 px-3 sm:px-4">
+                              <td key={col.key} className="py-2.5 sm:py-3 px-3 sm:px-4 whitespace-nowrap">
                                 {formatValue(row[col.key], row.isText)}
                               </td>
                             );
@@ -383,13 +410,14 @@ export default function SizeChartModal({
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-[#F5D5DB] bg-white flex items-center justify-between">
-          <p className="text-[11px] text-[#7B5D69]">
+        <div className="px-4 sm:px-6 py-3 border-t border-[#F5D5DB] bg-white flex items-center justify-between gap-3">
+          <p className="text-[11px] text-[#7B5D69] truncate">
             {sizeConfig.dressType} · Sizing provided directly by Jai Womens World.
           </p>
           <button
+            type="button"
             onClick={onClose}
-            className="px-5 py-2 rounded-full text-xs font-semibold uppercase tracking-wider bg-[#12233F] hover:bg-[#B02F5E] text-white transition-all cursor-pointer"
+            className="px-4 sm:px-5 py-2 rounded-full text-xs font-semibold uppercase tracking-wider bg-[#12233F] hover:bg-[#B02F5E] text-white transition-all cursor-pointer shrink-0"
           >
             Close
           </button>

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/mongodb';
 import { getRazorpay } from '@/lib/razorpay';
 import PendingOrder from '@/models/PendingOrder';
+import Settings from '@/models/Settings';
 import { buildOrderItemsAndTotals, OrderError } from '@/lib/orderCalc';
 import { INDIAN_STATES } from '@/lib/indianStates';
 
@@ -19,17 +20,36 @@ export async function POST(req) {
     if (!customer?.name || !customer?.phone) {
       return NextResponse.json({ error: 'Name and phone are required' }, { status: 400 });
     }
-    if (!shippingAddress?.state || !INDIAN_STATES.includes(shippingAddress.state)) {
-      return NextResponse.json({ error: 'Please select a valid delivery state' }, { status: 400 });
+
+    const country = shippingAddress?.country || 'India';
+    const isDomestic = !country || country.toLowerCase() === 'india' || country.toLowerCase() === 'in';
+
+    if (isDomestic) {
+      if (!shippingAddress?.state || !INDIAN_STATES.includes(shippingAddress.state)) {
+        return NextResponse.json({ error: 'Please select a valid delivery state' }, { status: 400 });
+      }
+    } else {
+      if (!shippingAddress?.country) {
+        return NextResponse.json({ error: 'Please select a valid delivery country' }, { status: 400 });
+      }
+      const settings = await Settings.findOne({ key: 'global' }).lean();
+      if (!settings?.internationalPaymentEnabled) {
+        return NextResponse.json({ error: 'International payments are currently disabled' }, { status: 400 });
+      }
     }
 
-    const { subtotal, discount, shippingFee, total, appliedCoupon, skippedIndexes } =
-      await buildOrderItemsAndTotals(items, couponCode, shippingAddress.state);
+    const { subtotal, discount, wholesaleDiscount, shippingFee, total, appliedCoupon, skippedIndexes, deliverable } =
+      await buildOrderItemsAndTotals(items, couponCode, shippingAddress?.state || '', { country });
+
+    if (!deliverable) {
+      return NextResponse.json({ error: `Shipping to ${country} is not supported` }, { status: 400 });
+    }
 
     if (process.env.NODE_ENV !== 'production') {
       console.log('CREATE-ORDER DEBUG', {
-        subtotal, discount, shippingFee, total,
+        subtotal, discount, wholesaleDiscount, shippingFee, total,
         state: shippingAddress.state,
+        country,
         couponSent: couponCode || '',
         couponApplied: appliedCoupon,
         skippedIndexes,

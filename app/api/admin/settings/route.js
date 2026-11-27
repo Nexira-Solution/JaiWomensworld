@@ -32,6 +32,45 @@ function sanitizeStateShipping(list) {
   return [...map.values()];
 }
 
+function sanitizeInternationalShipping(list) {
+  if (!Array.isArray(list)) return [];
+  const map = new Map();
+  for (const r of list) {
+    const country = String(r?.country || '').trim();
+    if (!country) continue;
+    map.set(country.toLowerCase(), {
+      country,
+      countryCode: String(r?.countryCode || '').trim().toUpperCase(),
+      shippingCharge: Math.max(0, Number(r?.shippingCharge) || 0),
+      freeShippingAbove: numOrNull(r?.freeShippingAbove),
+      enabled: r.enabled !== false
+    });
+  }
+  return [...map.values()];
+}
+
+function sanitizeWholesaleTiers(list) {
+  if (!Array.isArray(list)) return [];
+  const result = [];
+  for (const t of list) {
+    const minQty = Math.max(1, Number(t?.minQty) || 0);
+    const maxQty = numOrNull(t?.maxQty);
+    const discountType = t?.discountType === 'fixed' ? 'fixed' : 'percentage';
+    const discountValue = Math.max(0, Number(t?.discountValue) || 0);
+    const description = String(t?.description || '').trim();
+    if (minQty > 0 && discountValue > 0) {
+      result.push({
+        minQty,
+        maxQty: maxQty && maxQty >= minQty ? maxQty : null,
+        discountType,
+        discountValue,
+        description
+      });
+    }
+  }
+  return result.sort((a, b) => a.minQty - b.minQty);
+}
+
 // Cleans the YouTube live links: trims, caps title length, and blanks any
 // URL that isn't a valid YouTube link.
 function sanitizeLiveStreams(ls) {
@@ -57,6 +96,8 @@ export const PUT = requireAdmin(async (req) => {
   await dbConnect();
   const body = await req.json();
   if ('stateShipping' in body) body.stateShipping = sanitizeStateShipping(body.stateShipping);
+  if ('internationalShipping' in body) body.internationalShipping = sanitizeInternationalShipping(body.internationalShipping);
+  if ('wholesaleTiers' in body) body.wholesaleTiers = sanitizeWholesaleTiers(body.wholesaleTiers);
   if ('liveStreams' in body) body.liveStreams = sanitizeLiveStreams(body.liveStreams);
   const settings = await Settings.findOneAndUpdate({ key: 'global' }, body, { new: true, upsert: true });
   revalidatePath('/'); // homepage uses ISR (600s), so refresh it right away
@@ -72,7 +113,7 @@ export const PUT = requireAdmin(async (req) => {
 //              Products with free shipping (for this state) are left out of the weight.
 export async function POST(req) {
   try {
-    const { subtotal, totalQty, state, items } = await req.json();
+    const { subtotal, totalQty, state, country = 'India', items } = await req.json();
 
     await dbConnect();
     const settings = await Settings.findOne({ key: 'global' }).lean();
@@ -97,6 +138,7 @@ export async function POST(req) {
         totalQty: shippablePieces,
         totalWeightGrams,
         state,
+        country,
         allItemsFree
       })
     );

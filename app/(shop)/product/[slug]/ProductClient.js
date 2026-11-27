@@ -57,6 +57,15 @@ export default function ProductClient({ data }) {
   }, []);
 
   const images = activeVariant?.images || [];
+  const mediaList = useMemo(() => {
+    const list = images.map((src) => ({ type: 'image', src }));
+    if (product.video) {
+      list.push({ type: 'video', src: product.video });
+    }
+    return list;
+  }, [images, product.video]);
+
+  const activeMedia = mediaList[activeImage] || mediaList[0] || null;
   const variantPrice = activeVariant?.price || 0;
   const sizeEffectivePrice = (s) => (Number(s?.price) > 0 ? Number(s.price) : variantPrice);
   const selectedSizeObj = activeVariant?.sizes?.find((s) => s.size === activeSize);
@@ -74,9 +83,37 @@ export default function ProductClient({ data }) {
     ? Math.round(((compareBase - currentBasePrice) / compareBase) * 100)
     : 0;
 
-  const sizeChartImages = product.sizeChart?.length
-    ? product.sizeChart
-    : product.category?.sizeChart || [];
+  // Collect all gallery images across all variants of this product to guarantee
+  // that product gallery photos are NEVER used as size chart images.
+  const galleryImageUrls = useMemo(() => {
+    const urls = new Set();
+    (product.variants || []).forEach((v) => {
+      (v.images || []).forEach((img) => {
+        if (img) urls.add(String(img).trim());
+      });
+    });
+    return urls;
+  }, [product.variants]);
+
+  // Actual size chart images from product or category (dynamically fetched from backend).
+  // Strictly filters out any image that belongs to the product gallery or empty values.
+  const sizeChartImages = useMemo(() => {
+    const rawList = product.sizeChart?.length
+      ? product.sizeChart
+      : product.category?.sizeChart || [];
+
+    const seen = new Set();
+    const result = [];
+    for (const item of rawList) {
+      const url = String(item || '').trim();
+      if (!url || seen.has(url)) continue;
+      // Do not allow product gallery images as size chart images
+      if (galleryImageUrls.has(url)) continue;
+      seen.add(url);
+      result.push(url);
+    }
+    return result;
+  }, [product.sizeChart, product.category?.sizeChart, galleryImageUrls]);
 
   const selectedSizeStock = getSizeStock(activeVariant, activeSize);
   const sizeOutOfStock = !!activeSize && selectedSizeStock <= 0;
@@ -112,8 +149,8 @@ export default function ProductClient({ data }) {
   const plusDisabled = !!activeSize && finiteStock && qty >= stock;
   const lowStockLeft = !!activeSize && finiteStock && stock > 0 && stock <= 5 ? stock : null;
 
-  const prevImage = () => setActiveImage((i) => (i === 0 ? images.length - 1 : i - 1));
-  const nextImage = () => setActiveImage((i) => (i === images.length - 1 ? 0 : i + 1));
+  const prevImage = () => setActiveImage((i) => (i === 0 ? mediaList.length - 1 : i - 1));
+  const nextImage = () => setActiveImage((i) => (i === mediaList.length - 1 ? 0 : i + 1));
 
   // Touch Swipe on mobile
   const touchStartX = useRef(null);
@@ -123,7 +160,7 @@ export default function ProductClient({ data }) {
   };
   const onTouchEnd = (e) => {
     setPaused(false);
-    if (touchStartX.current == null || images.length < 2) return;
+    if (touchStartX.current == null || mediaList.length < 2) return;
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     touchStartX.current = null;
     if (Math.abs(dx) > 40) dx < 0 ? nextImage() : prevImage();
@@ -270,9 +307,9 @@ export default function ProductClient({ data }) {
             {/* Left: Gallery Column */}
             <div className="lg:col-span-7 flex flex-col-reverse sm:flex-row gap-4">
               {/* Thumbnails list (Desktop/Tablet) */}
-              {images.length > 1 && (
+              {mediaList.length > 1 && (
                 <div className="flex sm:flex-col gap-2.5 overflow-x-auto sm:overflow-y-auto max-h-[550px] no-scrollbar shrink-0">
-                  {images.map((img, i) => (
+                  {mediaList.map((item, i) => (
                     <button
                       key={i}
                       type="button"
@@ -281,32 +318,52 @@ export default function ProductClient({ data }) {
                         i === activeImage ? 'border-[#B02F5E] shadow-sm ring-1 ring-[#B02F5E]' : 'border-[#F5D5DB] hover:border-[#F4A7BA]'
                       }`}
                     >
-                      <Image src={img} alt={`Thumbnail ${i + 1}`} fill sizes="64px" className="object-cover" />
+                      {item.type === 'video' ? (
+                        <div className="w-full h-full bg-[#12233F] flex flex-col items-center justify-center text-white p-1">
+                          <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center mb-1">
+                            <svg className="w-3.5 h-3.5 fill-current text-white translate-x-0.5" viewBox="0 0 24 24">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </div>
+                          <span className="text-[9px] uppercase tracking-wider font-semibold">Video</span>
+                        </div>
+                      ) : (
+                        <Image src={item.src} alt={`Thumbnail ${i + 1}`} fill sizes="64px" className="object-cover" />
+                      )}
                     </button>
                   ))}
                 </div>
               )}
 
-              {/* Main Active Image View */}
+              {/* Main Active Media View */}
               <div
                 className="relative flex-1 aspect-[3/4] max-h-[600px] rounded-lg overflow-hidden border border-[#F5D5DB] bg-[#FCE4E8]/40 group"
                 onTouchStart={onTouchStart}
                 onTouchEnd={onTouchEnd}
               >
-                {images[activeImage] && (
+                {activeMedia?.type === 'video' ? (
+                  <div className="w-full h-full bg-black flex items-center justify-center">
+                    <video
+                      src={activeMedia.src}
+                      controls
+                      playsInline
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                ) : activeMedia?.src ? (
                   <Image
-                    src={images[activeImage]}
+                    src={activeMedia.src}
                     alt={product.name}
                     fill
                     priority
                     sizes="(max-width: 1024px) 100vw, 600px"
                     className="object-cover object-top cursor-zoom-in"
-                    onClick={() => setLightboxImg(images[activeImage])}
+                    onClick={() => setLightboxImg(activeMedia.src)}
                   />
-                )}
+                ) : null}
 
                 {/* Offer / Stock Tag */}
-                <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none">
+                <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none z-10">
                   {discount > 0 && (
                     <span className="text-xs font-semibold uppercase tracking-wider px-2.5 py-1 rounded bg-[#D9A441] text-[#12233F] shadow-sm">
                       {discount}% OFF
@@ -319,20 +376,20 @@ export default function ProductClient({ data }) {
                   )}
                 </div>
 
-                {/* Image Navigation Arrows */}
-                {images.length > 1 && (
+                {/* Media Navigation Arrows */}
+                {mediaList.length > 1 && (
                   <>
                     <button
                       onClick={prevImage}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-[#12233F] shadow-sm flex items-center justify-center border border-[#F5D5DB] transition-all"
-                      aria-label="Previous Image"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-[#12233F] shadow-sm flex items-center justify-center border border-[#F5D5DB] transition-all z-10"
+                      aria-label="Previous Media"
                     >
                       <ChevronLeft size={16} />
                     </button>
                     <button
                       onClick={nextImage}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-[#12233F] shadow-sm flex items-center justify-center border border-[#F5D5DB] transition-all"
-                      aria-label="Next Image"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-[#12233F] shadow-sm flex items-center justify-center border border-[#F5D5DB] transition-all z-10"
+                      aria-label="Next Media"
                     >
                       <ChevronRight size={16} />
                     </button>
